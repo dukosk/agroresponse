@@ -3,6 +3,8 @@ const path = require('path');
 const {
   createRegistration,
   getQueue,
+  getWaitingPosition,
+  resetWaitingQueue,
   callNextPlayer,
   finishCurrentPlayer,
   skipPlayer,
@@ -10,10 +12,21 @@ const {
   saveScore,
   getEventLeaderboard,
   getTodayEventLeaderboard,
+  getEventRankForPlayer,
+  getTodayTopFive,
   getGlobalLeaderboard,
   getEventPlayers,
 } = require('./src/db');
-const { DEFAULT_EVENT_SLUG, MAPS, TIMER_SECONDS, GRID_SIZE } = require('./src/gameConfig');
+const {
+  EVENT_NAME,
+  DEFAULT_EVENT_SLUG,
+  MAPS,
+  TIMER_SECONDS,
+  GAME_DURATION_SECONDS,
+  SPAWN_INTERVAL_MS,
+  MAX_ACTIVE_TARGETS,
+  GRID_SIZE,
+} = require('./src/gameConfig');
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -43,9 +56,13 @@ function routeError(res, error, message) {
 
 app.get('/api/config', (req, res) => {
   res.json({
+    eventName: EVENT_NAME,
     defaultEventSlug: DEFAULT_EVENT_SLUG,
     maps: MAPS,
     timerSeconds: TIMER_SECONDS,
+    gameDurationSeconds: GAME_DURATION_SECONDS,
+    spawnIntervalMs: SPAWN_INTERVAL_MS,
+    maxActiveTargets: MAX_ACTIVE_TARGETS,
     gridSize: GRID_SIZE,
   });
 });
@@ -69,7 +86,8 @@ app.post('/api/register', (req, res) => {
   }
 
   const registration = createRegistration({ eventSlug, name, email, selectedMap });
-  res.json({ ok: true, registration });
+  const waitingPosition = getWaitingPosition(eventSlug, registration.queue_number);
+  res.json({ ok: true, registration, waitingPosition });
 });
 
 app.get('/api/queue', (req, res) => {
@@ -109,6 +127,15 @@ app.post('/api/queue/skip-player', (req, res) => {
   res.json(result);
 });
 
+app.post('/api/queue/reset-waiting', (req, res) => {
+  try {
+    const eventSlug = cleanEventSlug(req.body.event_slug);
+    res.json(resetWaitingQueue(eventSlug));
+  } catch (error) {
+    routeError(res, error, 'Waiting queue could not be reset.');
+  }
+});
+
 app.get('/api/player/:id', (req, res) => {
   const id = Number.parseInt(req.params.id, 10);
   const player = getPlayer(id);
@@ -134,7 +161,12 @@ app.post('/api/score', (req, res) => {
   }
 
   saveScore(id, score);
-  res.json({ ok: true, eventSlug: player.event_slug });
+  res.json({
+    ok: true,
+    eventSlug: player.event_slug,
+    score,
+    ranks: getEventRankForPlayer(id),
+  });
 });
 
 app.get('/api/leaderboard', (req, res) => {
@@ -162,6 +194,32 @@ app.get('/api/leaderboard/today', (req, res) => {
     });
   } catch (error) {
     routeError(res, error, 'Today leaderboard could not be loaded.');
+  }
+});
+
+app.get('/api/leaderboard/today/export', (req, res) => {
+  try {
+    const eventSlug = cleanEventSlug(req.query.event);
+    const rows = getTodayTopFive(eventSlug);
+    const columns = [
+      ['rank', null],
+      ['queue_number', 'queue_number'],
+      ['name', 'name'],
+      ['email', 'email'],
+      ['selected_map', 'selected_map'],
+      ['score', 'score'],
+      ['finished_at', 'finished_at'],
+    ];
+    const csvRows = rows.map((row, index) => columns.map((column) => (
+      column[0] === 'rank' ? csvCell(index + 1) : csvCell(row[column[1]])
+    )).join(','));
+    const csv = [columns.map((column) => column[0]).join(','), ...csvRows].join('\n');
+
+    res.header('Content-Type', 'text/csv; charset=utf-8');
+    res.header('Content-Disposition', `attachment; filename="${eventSlug}-today-top-5.csv"`);
+    res.send(csv + '\n');
+  } catch (error) {
+    routeError(res, error, 'Today Top 5 CSV could not be exported.');
   }
 });
 

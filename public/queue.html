@@ -19,7 +19,6 @@
             <a href="/">Home</a>
             <a data-event-link href="/register.html">Register</a>
             <a data-event-link href="/leaderboard.html">Leaderboard</a>
-            <a data-event-link href="/players.html">Players</a>
           </nav>
         </div>
 
@@ -27,10 +26,6 @@
 
         <div>
           <div class="next-player" id="nextCard"></div>
-          <div class="inline-actions">
-            <button class="button primary" id="callNext" type="button">Call Next Player</button>
-            <button class="button" id="finishCurrent" type="button">Mark Current Finished</button>
-          </div>
           <p class="message" id="queueMessage"></p>
         </div>
       </div>
@@ -46,6 +41,14 @@
         <div class="leaderboard-preview">
           <h2>Today Top Scores</h2>
           <div id="leaderboardPreview"></div>
+        </div>
+
+        <div class="qr-compact">
+          <div class="qr-code small" aria-hidden="true"></div>
+          <div>
+            <strong>Register</strong>
+            <span id="queueRegisterUrl"></span>
+          </div>
         </div>
       </div>
     </section>
@@ -63,6 +66,7 @@
 
     AgroApi.setEventLinks();
     document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+    document.getElementById('queueRegisterUrl').textContent = window.location.origin + '/register.html?event=' + encodeURIComponent(eventSlug);
 
     function playerCard(label, player, isCurrent) {
       if (!player) {
@@ -73,12 +77,10 @@
         return '<span class="player-label">' + label + '</span><strong>No one waiting</strong><div class="player-meta">New pilots appear after registration</div>';
       }
 
-      const gameLink = isCurrent ? '<a class="button primary" href="/game.html?id=' + player.id + '">Start Game</a>' : '';
-      const skipButton = isCurrent ? '<button class="button muted" data-skip="' + player.id + '" type="button">Skip Player</button>' : '';
       if (isCurrent) {
         return '<div class="player-label">' + label + '</div><div class="player-name">' + AgroApi.escapeHtml(player.name) +
           '</div><div class="player-meta">Queue #' + player.queue_number + ' · ' + AgroApi.title(player.selected_map) +
-          ' Mission</div><div class="actions">' + gameLink + skipButton + '</div>';
+          ' Mission</div>';
       }
       return '<span class="player-label">' + label + '</span><strong>#' + player.queue_number + ' ' + AgroApi.escapeHtml(player.name) +
         '</strong><div class="player-meta">' + AgroApi.title(player.selected_map) + ' Mission</div>';
@@ -95,9 +97,8 @@
 
       waitingRows.innerHTML = data.queue.waiting.map(function (player) {
         return '<div class="waiting-row"><span class="queue-number">#' + player.queue_number + '</span><strong>' +
-          AgroApi.escapeHtml(player.name) + '</strong><button class="button small" data-skip="' + player.id +
-          '" type="button">Skip</button><span></span><span class="message">' + AgroApi.title(player.selected_map) +
-          ' Mission</span><span></span></div>';
+          AgroApi.escapeHtml(player.name) + '</strong><span class="message">' + AgroApi.title(player.selected_map) +
+          ' Mission</span></div>';
       }).join('');
     }
 
@@ -147,33 +148,6 @@
           leaderboardPreview.innerHTML = '<div class="empty-state">Today scores could not be loaded.</div>';
         });
     }
-
-    function queueAction(path, body) {
-      message.textContent = '';
-      return AgroApi.post(path, body)
-        .then(function (result) {
-          if (!result.ok) throw new Error(result.error);
-          refreshQueue();
-        })
-        .catch(function (error) {
-          message.textContent = error.message || 'Queue action failed.';
-          refreshQueue();
-        });
-    }
-
-    document.getElementById('callNext').addEventListener('click', function () {
-      queueAction('/api/queue/call-next', { event_slug: eventSlug });
-    });
-
-    document.getElementById('finishCurrent').addEventListener('click', function () {
-      queueAction('/api/queue/finish-current', { event_slug: eventSlug });
-    });
-
-    document.addEventListener('click', function (event) {
-      const button = event.target.closest('[data-skip]');
-      if (!button) return;
-      queueAction('/api/queue/skip-player', { event_slug: eventSlug, id: button.dataset.skip });
-    });
 
     refreshQueue();
     window.setInterval(refreshQueue, 3000);

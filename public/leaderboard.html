@@ -16,8 +16,13 @@
     </nav>
 
     <section class="panel">
-      <p class="eyebrow" id="eventLabel">Event</p>
-      <h1>Mission Rankings</h1>
+      <div class="section-head">
+        <div>
+          <p class="eyebrow" id="eventLabel">Event</p>
+          <h1>Mission Rankings</h1>
+        </div>
+        <a class="button primary" id="exportTodayTop5" href="/api/leaderboard/today/export">Export Daily Top 5</a>
+      </div>
 
       <div class="leaderboards">
         <div>
@@ -37,6 +42,7 @@
     const eventSlug = AgroApi.eventSlug();
     AgroApi.setEventLinks();
     document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+    document.getElementById('exportTodayTop5').href = '/api/leaderboard/today/export?event=' + encodeURIComponent(eventSlug);
 
     function rows(scores) {
       const top = scores.slice(0, 10);

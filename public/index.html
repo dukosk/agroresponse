@@ -19,6 +19,14 @@
           <a class="button" data-event-link href="/leaderboard.html">Leaderboard</a>
           <a class="button" data-event-link href="/players.html">Players</a>
         </div>
+        <div class="qr-section">
+          <div class="qr-code" aria-hidden="true"></div>
+          <div>
+            <p class="eyebrow">QR Registration</p>
+            <h2>Scan to Join the Mission Queue</h2>
+            <p class="lead" id="registerUrl">/register.html</p>
+          </div>
+        </div>
       </div>
 
       <div class="mission-grid">
@@ -50,6 +58,7 @@
   <script>
     AgroApi.setEventLinks();
     document.getElementById('eventLabel').textContent = 'Event: ' + AgroApi.eventSlug();
+    document.getElementById('registerUrl').textContent = window.location.origin + '/register.html?event=' + encodeURIComponent(AgroApi.eventSlug());
   </script>
 </body>
 </html>

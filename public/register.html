@@ -98,9 +98,12 @@
           const player = result.registration;
           form.reset();
           notice.className = 'notice success';
-          notice.innerHTML = '<h2>Queue #' + player.queue_number + '</h2>' +
+          notice.innerHTML = '<div class="registration-result"><span>Queue Number</span><strong>#' +
+            player.queue_number + '</strong><span>Selected Mission</span><strong>' +
+            AgroApi.title(player.selected_map) + '</strong><span>Approx. Waiting Position</span><strong>' +
+            (result.waitingPosition || player.queue_number) + '</strong></div>' +
             '<p>' + AgroApi.escapeHtml(player.name) + ' is registered for the ' +
-            AgroApi.escapeHtml(player.selected_map) + ' map.</p>' +
+            AgroApi.escapeHtml(player.selected_map) + ' mission.</p>' +
             '<div class="actions"><a class="button primary" href="/queue.html?event=' +
             encodeURIComponent(eventSlug) + '">View Queue</a></div>';
         })

@@ -53,6 +53,20 @@ function createRegistration({ eventSlug, name, email, selectedMap }) {
   return getPlayer(result.lastInsertRowid);
 }
 
+function getWaitingPosition(eventSlug, queueNumber) {
+  const row = db
+    .prepare(`
+      SELECT COUNT(*) AS position
+      FROM registrations
+      WHERE event_slug = ?
+        AND status = 'waiting'
+        AND queue_number <= ?
+    `)
+    .get(eventSlug, queueNumber);
+
+  return row.position;
+}
+
 function getCurrentPlayer(eventSlug) {
   return db
     .prepare(`
@@ -91,6 +105,22 @@ function getQueue(eventSlug) {
     next: getNextPlayer(eventSlug),
     waiting: getWaitingPlayers(eventSlug),
   };
+}
+
+function resetWaitingQueue(eventSlug) {
+  const result = db
+    .prepare(`
+      UPDATE registrations
+      SET status = 'waiting',
+          started_at = NULL,
+          finished_at = NULL
+      WHERE event_slug = ?
+        AND score IS NULL
+        AND status IN ('waiting', 'playing', 'skipped')
+    `)
+    .run(eventSlug);
+
+  return { ok: true, changed: result.changes };
 }
 
 const callNextPlayer = db.transaction((eventSlug) => {
@@ -197,6 +227,52 @@ function getTodayEventLeaderboard(eventSlug) {
     .all(eventSlug);
 }
 
+function getEventRankForPlayer(id) {
+  const player = getPlayer(id);
+  if (!player || player.score == null) return null;
+
+  const eventRank = db
+    .prepare(`
+      SELECT COUNT(*) + 1 AS rank
+      FROM registrations
+      WHERE event_slug = ?
+        AND score IS NOT NULL
+        AND score > ?
+    `)
+    .get(player.event_slug, player.score).rank;
+
+  const todayRank = db
+    .prepare(`
+      SELECT COUNT(*) + 1 AS rank
+      FROM registrations
+      WHERE event_slug = ?
+        AND status = 'finished'
+        AND score IS NOT NULL
+        AND date(COALESCE(finished_at, created_at), 'localtime') = date('now', 'localtime')
+        AND score > ?
+    `)
+    .get(player.event_slug, player.score).rank;
+
+  return {
+    event: eventRank,
+    today: todayRank,
+  };
+}
+
+function getTodayTopFive(eventSlug) {
+  return db
+    .prepare(`
+      SELECT * FROM registrations
+      WHERE event_slug = ?
+        AND status = 'finished'
+        AND score IS NOT NULL
+        AND date(COALESCE(finished_at, created_at), 'localtime') = date('now', 'localtime')
+      ORDER BY score DESC, finished_at ASC
+      LIMIT 5
+    `)
+    .all(eventSlug);
+}
+
 function getGlobalLeaderboard() {
   return db
     .prepare(`
@@ -224,6 +300,8 @@ function getEventPlayers(eventSlug) {
 module.exports = {
   createRegistration,
   getQueue,
+  getWaitingPosition,
+  resetWaitingQueue,
   callNextPlayer,
   finishCurrentPlayer,
   skipPlayer,
@@ -231,6 +309,8 @@ module.exports = {
   saveScore,
   getEventLeaderboard,
   getTodayEventLeaderboard,
+  getEventRankForPlayer,
+  getTodayTopFive,
   getGlobalLeaderboard,
   getEventPlayers,
 };

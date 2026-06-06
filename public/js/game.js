@@ -13,18 +13,21 @@
   let gridSize = 16;
   let cellSize = canvas.width / gridSize;
   let timerSeconds = 45;
+  let spawnIntervalMs = 2200;
+  let maxActiveTargets = 3;
   let registrationId = null;
   let eventSlug = AgroApi.eventSlug();
   let selectedMap = 'field';
   let backgroundImage = new Image();
   let backgroundReady = false;
   let drone = { x: 7, y: 7 };
-  let target = { x: 0, y: 0 };
+  let targets = [];
   let score = 0;
   let timeLeft = timerSeconds;
   let running = false;
   let lastMove = 0;
   let intervalId = null;
+  let spawnTimerId = null;
   let saved = false;
   let scoreAnimations = [];
   let droneAngle = 0;
@@ -37,9 +40,17 @@
         x: Math.floor(Math.random() * gridSize),
         y: Math.floor(Math.random() * gridSize),
       };
-    } while (next.x === drone.x && next.y === drone.y);
+    } while (
+      (next.x === drone.x && next.y === drone.y) ||
+      targets.some(function (target) { return target.x === next.x && target.y === next.y; })
+    );
 
     return next;
+  }
+
+  function spawnTarget() {
+    if (targets.length >= maxActiveTargets) return;
+    targets.push(randomTarget());
   }
 
   function draw() {
@@ -69,7 +80,7 @@
       ctx.stroke();
     }
 
-    drawTarget();
+    targets.forEach(drawTarget);
     drawMissionEffect();
     drawDrone();
     drawScoreAnimations();
@@ -84,7 +95,7 @@
     ctx.drawImage(image, x, y, width, height);
   }
 
-  function drawTarget() {
+  function drawTarget(target) {
     const pulse = running ? Math.sin(Date.now() / 120) * 0.12 + 0.88 : 0.88;
     const pad = cellSize * 0.14;
     const x = target.x * cellSize + pad;
@@ -323,10 +334,14 @@
     if (!running) return;
 
     actionPulseAt = performance.now();
+    const hitIndex = targets.findIndex(function (target) {
+      return drone.x === target.x && drone.y === target.y;
+    });
 
-    if (drone.x === target.x && drone.y === target.y) {
+    if (hitIndex !== -1) {
       updateScore(100);
-      target = randomTarget();
+      targets.splice(hitIndex, 1);
+      spawnTarget();
       messageEl.textContent = 'Disease hotspot treated.';
     } else {
       updateScore(-50);
@@ -347,7 +362,8 @@
     timeLeft = timerSeconds;
     saved = false;
     drone = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
-    target = randomTarget();
+    targets = [];
+    spawnTarget();
     scoreEl.textContent = score;
     timeEl.textContent = timeLeft;
     messageEl.textContent = '';
@@ -362,6 +378,7 @@
         finishGame();
       }
     }, 1000);
+    spawnTimerId = window.setInterval(spawnTarget, spawnIntervalMs);
   }
 
   function finishGame() {
@@ -370,6 +387,7 @@
     running = false;
     saved = true;
     window.clearInterval(intervalId);
+    window.clearInterval(spawnTimerId);
     startButton.disabled = false;
     startButton.textContent = 'Play Again';
     messageEl.textContent = 'Saving score...';
@@ -377,8 +395,13 @@
     AgroApi.post('/api/score', { registration_id: registrationId, score: score })
       .then(function (data) {
         if (!data.ok) throw new Error(data.error || 'Save failed');
-        messageEl.innerHTML = 'Final score saved. <a href="/leaderboard.html?event=' +
-          encodeURIComponent(data.eventSlug) + '">View leaderboard</a>.';
+        const eventRank = data.ranks && data.ranks.event ? data.ranks.event : '-';
+        const todayRank = data.ranks && data.ranks.today ? data.ranks.today : '-';
+        messageEl.innerHTML = '<div class="final-result"><span>Final Score</span><strong>' + score +
+          '</strong><span>Event Rank</span><strong>#' + eventRank +
+          '</strong><span>Today Rank</span><strong>#' + todayRank +
+          '</strong></div><a href="/leaderboard.html?event=' + encodeURIComponent(data.eventSlug) +
+          '">View leaderboard</a>.';
       })
       .catch(function () {
         messageEl.textContent = 'Score could not be saved. Try refreshing after checking the server.';
@@ -417,13 +440,16 @@
         const config = results[0];
         const player = results[1].player;
         gridSize = config.gridSize;
-        timerSeconds = config.timerSeconds;
+        timerSeconds = config.gameDurationSeconds || config.timerSeconds;
+        spawnIntervalMs = config.spawnIntervalMs || spawnIntervalMs;
+        maxActiveTargets = config.maxActiveTargets || maxActiveTargets;
         cellSize = canvas.width / gridSize;
         registrationId = player.id;
         eventSlug = player.event_slug;
         selectedMap = player.selected_map;
         drone = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
-        target = randomTarget();
+        targets = [];
+        spawnTarget();
         timeLeft = timerSeconds;
         timeEl.textContent = timeLeft;
         document.getElementById('playerName').textContent = player.name;
@@ -451,7 +477,7 @@
     backgroundImage.src = '/img/' + map + '-aerial.png';
   }
 
-  target = randomTarget();
+  spawnTarget();
   startButton.addEventListener('click', startGame);
   loadPlayer();
   requestAnimationFrame(loop);

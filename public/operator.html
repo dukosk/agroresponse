@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operator | Agro Drone Response</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="shell">
+    <nav class="topnav">
+      <a href="/">Home</a>
+      <a data-event-link href="/queue.html">Public Queue</a>
+      <a data-event-link href="/register.html">Register</a>
+      <a data-event-link href="/players.html">Players</a>
+      <a data-event-link href="/leaderboard.html">Leaderboard</a>
+    </nav>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow" id="eventLabel">Event</p>
+          <h1>Operator Control</h1>
+        </div>
+        <div class="inline-actions">
+          <button class="button primary" id="callNext" type="button">Call Next Player</button>
+          <button class="button" id="finishCurrent" type="button">Mark Current Finished</button>
+          <button class="button muted" id="resetWaiting" type="button">Reset Waiting Queue</button>
+        </div>
+      </div>
+
+      <p class="message" id="operatorMessage"></p>
+
+      <div class="queue-grid operator-grid">
+        <article class="status-card current" id="currentCard"></article>
+        <article class="status-card" id="nextCard"></article>
+      </div>
+
+      <h2>Waiting Pilots</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Queue</th><th>Name</th><th>Mission</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody id="waitingRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    const eventSlug = AgroApi.eventSlug();
+    const currentCard = document.getElementById('currentCard');
+    const nextCard = document.getElementById('nextCard');
+    const waitingRows = document.getElementById('waitingRows');
+    const message = document.getElementById('operatorMessage');
+
+    AgroApi.setEventLinks();
+    document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+
+    function card(label, player, current) {
+      if (!player) return '<span>' + label + '</span><strong>None</strong><small>No player selected.</small>';
+      return '<span>' + label + '</span><strong>#' + player.queue_number + ' ' + AgroApi.escapeHtml(player.name) +
+        '</strong><small>' + AgroApi.title(player.selected_map) + ' Mission</small>' +
+        (current ? '<div class="actions"><a class="button primary" href="/game.html?id=' + player.id + '">Open Game</a><button class="button muted" data-skip="' + player.id + '">Skip</button></div>' : '');
+    }
+
+    function render(data) {
+      currentCard.innerHTML = card('Current Player', data.queue.current, true);
+      nextCard.innerHTML = card('Next Player', data.queue.next, false);
+      if (!data.queue.waiting.length) {
+        waitingRows.innerHTML = '<tr><td colspan="5">No waiting players.</td></tr>';
+        return;
+      }
+      waitingRows.innerHTML = data.queue.waiting.map(function (player) {
+        return '<tr><td>#' + player.queue_number + '</td><td>' + AgroApi.escapeHtml(player.name) +
+          '</td><td>' + AgroApi.title(player.selected_map) + '</td><td>' + player.status +
+          '</td><td><button class="button small" data-skip="' + player.id + '">Skip</button></td></tr>';
+      }).join('');
+    }
+
+    function refresh() {
+      AgroApi.get('/api/queue?event=' + encodeURIComponent(eventSlug))
+        .then(render)
+        .catch(function (error) {
+          AgroApi.logError('Operator queue API failed', error);
+          message.textContent = 'Queue could not be loaded.';
+        });
+    }
+
+    function action(path, body) {
+      message.textContent = '';
+      AgroApi.post(path, body)
+        .then(function () { refresh(); })
+        .catch(function (error) {
+          AgroApi.logError('Operator action failed', error);
+          message.textContent = error.message || 'Action failed.';
+          refresh();
+        });
+    }
+
+    document.getElementById('callNext').addEventListener('click', function () {
+      action('/api/queue/call-next', { event_slug: eventSlug });
+    });
+    document.getElementById('finishCurrent').addEventListener('click', function () {
+      action('/api/queue/finish-current', { event_slug: eventSlug });
+    });
+    document.getElementById('resetWaiting').addEventListener('click', function () {
+      action('/api/queue/reset-waiting', { event_slug: eventSlug });
+    });
+    document.addEventListener('click', function (event) {
+      const button = event.target.closest('[data-skip]');
+      if (!button) return;
+      action('/api/queue/skip-player', { event_slug: eventSlug, id: button.dataset.skip });
+    });
+
+    refresh();
+    window.setInterval(refresh, 3000);
+  </script>
+</body>
+</html>
