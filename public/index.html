@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agro Drone Response</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="shell home">
+    <section class="hero">
+      <p class="eyebrow" id="eventLabel">Event: agrokomplex-nitra</p>
+      <h1>Agro Drone Response</h1>
+      <p class="lead">Register pilots, manage the live queue, fly the response grid, and track event scores.</p>
+      <div class="actions">
+        <a class="button primary" data-event-link href="/register.html">Register Player</a>
+        <a class="button" data-event-link href="/queue.html">Queue Board</a>
+        <a class="button" data-event-link href="/leaderboard.html">Leaderboard</a>
+      </div>
+    </section>
+  </main>
+  <script src="/js/api.js"></script>
+  <script>
+    AgroApi.setEventLinks();
+    document.getElementById('eventLabel').textContent = 'Event: ' + AgroApi.eventSlug();
+  </script>
+</body>
+</html>

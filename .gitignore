@@ -1,6 +1,5 @@
 .DS_Store
 .env
-database/*.sqlite
 database/*.sqlite-journal
 vendor/
 node_modules/

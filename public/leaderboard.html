@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leaderboard | Agro Drone Response</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="shell">
+    <nav class="topnav">
+      <a href="/">Home</a>
+      <a data-event-link href="/register.html">Register</a>
+      <a data-event-link href="/queue.html">Queue</a>
+    </nav>
+
+    <section class="panel">
+      <p class="eyebrow" id="eventLabel">Event</p>
+      <h1>Leaderboard</h1>
+
+      <div class="leaderboards">
+        <div>
+          <h2>Event Leaderboard</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Rank</th><th>Pilot</th><th>Map</th><th>Score</th></tr></thead>
+              <tbody id="eventRows"></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h2>Global Leaderboard</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Rank</th><th>Pilot</th><th>Event</th><th>Map</th><th>Score</th></tr></thead>
+              <tbody id="globalRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    const eventSlug = AgroApi.eventSlug();
+    AgroApi.setEventLinks();
+    document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+
+    function rows(scores, showEvent) {
+      if (!scores.length) {
+        return '<tr><td colspan="' + (showEvent ? 5 : 4) + '">No scores yet.</td></tr>';
+      }
+
+      return scores.map(function (row, index) {
+        return '<tr><td>' + (index + 1) + '</td><td>' + AgroApi.escapeHtml(row.name) + '</td>' +
+          (showEvent ? '<td>' + AgroApi.escapeHtml(row.event_slug) + '</td>' : '') +
+          '<td>' + AgroApi.title(row.selected_map) + '</td><td><strong>' + row.score + '</strong></td></tr>';
+      }).join('');
+    }
+
+    AgroApi.get('/api/leaderboard?event=' + encodeURIComponent(eventSlug)).then(function (data) {
+      document.getElementById('eventRows').innerHTML = rows(data.event, false);
+      document.getElementById('globalRows').innerHTML = rows(data.global, true);
+    });
+  </script>
+</body>
+</html>

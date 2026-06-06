@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register | Agro Drone Response</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="shell">
+    <nav class="topnav">
+      <a href="/">Home</a>
+      <a data-event-link href="/queue.html">Queue</a>
+      <a data-event-link href="/leaderboard.html">Leaderboard</a>
+    </nav>
+
+    <section class="panel">
+      <p class="eyebrow" id="eventLabel">Event</p>
+      <h1>Register Pilot</h1>
+      <div class="notice hidden" id="notice"></div>
+
+      <form class="form" id="registerForm">
+        <label>
+          <span>Name</span>
+          <input name="name" required maxlength="120" autocomplete="name">
+        </label>
+
+        <label>
+          <span>Email</span>
+          <input name="email" type="email" required maxlength="180" autocomplete="email">
+        </label>
+
+        <label>
+          <span>Selected map</span>
+          <select name="selected_map" id="mapSelect" required></select>
+        </label>
+
+        <button class="button primary" type="submit">Join Queue</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    const eventSlug = AgroApi.eventSlug();
+    const form = document.getElementById('registerForm');
+    const notice = document.getElementById('notice');
+    const mapSelect = document.getElementById('mapSelect');
+
+    AgroApi.setEventLinks();
+    document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+
+    AgroApi.config().then(function (config) {
+      mapSelect.innerHTML = config.maps.map(function (map) {
+        return '<option value="' + AgroApi.escapeHtml(map) + '">' + AgroApi.title(map) + '</option>';
+      }).join('');
+    });
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.event_slug = eventSlug;
+
+      AgroApi.post('/api/register', data)
+        .then(function (result) {
+          if (!result.ok) throw new Error(result.error);
+          const player = result.registration;
+          form.reset();
+          notice.className = 'notice success';
+          notice.innerHTML = '<h2>Queue #' + player.queue_number + '</h2>' +
+            '<p>' + AgroApi.escapeHtml(player.name) + ' is registered for the ' +
+            AgroApi.escapeHtml(player.selected_map) + ' map.</p>' +
+            '<div class="actions"><a class="button primary" href="/queue.html?event=' +
+            encodeURIComponent(eventSlug) + '">View Queue</a></div>';
+        })
+        .catch(function (error) {
+          notice.className = 'notice error';
+          notice.textContent = error.message || 'Registration failed.';
+        });
+    });
+  </script>
+</body>
+</html>

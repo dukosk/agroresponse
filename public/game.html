@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Game | Agro Drone Response</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="shell game-shell">
+    <nav class="topnav">
+      <a href="/">Home</a>
+      <a id="queueLink" href="/queue.html">Queue</a>
+      <a id="leaderboardLink" href="/leaderboard.html">Leaderboard</a>
+    </nav>
+
+    <section class="game-layout">
+      <div class="game-info">
+        <p class="eyebrow" id="playerMeta">Loading player</p>
+        <h1 id="playerName">Agro Drone Response</h1>
+        <div class="stats">
+          <span>Score <strong id="score">0</strong></span>
+          <span>Time <strong id="time">45</strong>s</span>
+        </div>
+        <button class="button primary" id="startGame" type="button" disabled>Start</button>
+        <p class="hint">Move with WASD or arrows. Press SPACE on a red target.</p>
+        <p id="gameMessage" class="message"></p>
+      </div>
+
+      <canvas id="gameCanvas" width="640" height="640"></canvas>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/game.js"></script>
+</body>
+</html>
