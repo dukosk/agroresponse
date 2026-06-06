@@ -12,30 +12,21 @@
       <a href="/">Home</a>
       <a data-event-link href="/register.html">Register</a>
       <a data-event-link href="/queue.html">Queue</a>
+      <a data-event-link href="/players.html">Players</a>
     </nav>
 
     <section class="panel">
       <p class="eyebrow" id="eventLabel">Event</p>
-      <h1>Leaderboard</h1>
+      <h1>Mission Rankings</h1>
 
       <div class="leaderboards">
         <div>
-          <h2>Event Leaderboard</h2>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Rank</th><th>Pilot</th><th>Map</th><th>Score</th></tr></thead>
-              <tbody id="eventRows"></tbody>
-            </table>
-          </div>
+          <h2>Event Top 10</h2>
+          <div class="ranking-list" id="eventRows"></div>
         </div>
         <div>
-          <h2>Global Leaderboard</h2>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Rank</th><th>Pilot</th><th>Event</th><th>Map</th><th>Score</th></tr></thead>
-              <tbody id="globalRows"></tbody>
-            </table>
-          </div>
+          <h2>Today Top 10</h2>
+          <div class="ranking-list" id="todayRows"></div>
         </div>
       </div>
     </section>
@@ -47,22 +38,31 @@
     AgroApi.setEventLinks();
     document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
 
-    function rows(scores, showEvent) {
-      if (!scores.length) {
-        return '<tr><td colspan="' + (showEvent ? 5 : 4) + '">No scores yet.</td></tr>';
-      }
+    function rows(scores) {
+      const top = scores.slice(0, 10);
+      if (!top.length) return '<div class="empty-state">No scores yet.</div>';
 
-      return scores.map(function (row, index) {
-        return '<tr><td>' + (index + 1) + '</td><td>' + AgroApi.escapeHtml(row.name) + '</td>' +
-          (showEvent ? '<td>' + AgroApi.escapeHtml(row.event_slug) + '</td>' : '') +
-          '<td>' + AgroApi.title(row.selected_map) + '</td><td><strong>' + row.score + '</strong></td></tr>';
+      return top.map(function (row, index) {
+        const medal = index === 0 ? ' gold' : index === 1 ? ' silver' : index === 2 ? ' bronze' : '';
+        return '<div class="rank-row' + medal + '"><span class="rank-number">#' + (index + 1) + '</span>' +
+          '<strong>' + AgroApi.escapeHtml(row.name) + '<br><span class="message">' +
+          AgroApi.title(row.selected_map) + ' Mission</span></strong><span class="rank-score">' + row.score + '</span></div>';
       }).join('');
     }
 
-    AgroApi.get('/api/leaderboard?event=' + encodeURIComponent(eventSlug)).then(function (data) {
-      document.getElementById('eventRows').innerHTML = rows(data.event, false);
-      document.getElementById('globalRows').innerHTML = rows(data.global, true);
-    });
+    Promise.all([
+      AgroApi.get('/api/leaderboard?event=' + encodeURIComponent(eventSlug)),
+      AgroApi.get('/api/leaderboard/today?event=' + encodeURIComponent(eventSlug)),
+    ])
+      .then(function (results) {
+        document.getElementById('eventRows').innerHTML = rows(results[0].event || []);
+        document.getElementById('todayRows').innerHTML = rows(results[1].today || []);
+      })
+      .catch(function (error) {
+        AgroApi.logError('Leaderboard API failed', error);
+        document.getElementById('eventRows').innerHTML = '<div class="empty-state">Leaderboard could not be loaded.</div>';
+        document.getElementById('todayRows').innerHTML = '<div class="empty-state">Today scores could not be loaded.</div>';
+      });
   </script>
 </body>
 </html>

@@ -12,6 +12,7 @@
       <a href="/">Home</a>
       <a data-event-link href="/queue.html">Queue</a>
       <a data-event-link href="/leaderboard.html">Leaderboard</a>
+      <a data-event-link href="/players.html">Players</a>
     </nav>
 
     <section class="panel">
@@ -20,20 +21,22 @@
       <div class="notice hidden" id="notice"></div>
 
       <form class="form" id="registerForm">
-        <label>
-          <span>Name</span>
-          <input name="name" required maxlength="120" autocomplete="name">
-        </label>
+        <div class="form-grid">
+          <label>
+            <span>Name</span>
+            <input name="name" required maxlength="120" autocomplete="name">
+          </label>
 
-        <label>
-          <span>Email</span>
-          <input name="email" type="email" required maxlength="180" autocomplete="email">
-        </label>
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" required maxlength="180" autocomplete="email">
+          </label>
+        </div>
 
-        <label>
-          <span>Selected map</span>
-          <select name="selected_map" id="mapSelect" required></select>
-        </label>
+        <div>
+          <p class="eyebrow">Select Mission Map</p>
+          <div class="map-choice-grid" id="mapChoices"></div>
+        </div>
 
         <button class="button primary" type="submit">Join Queue</button>
       </form>
@@ -43,23 +46,51 @@
   <script src="/js/api.js"></script>
   <script>
     const eventSlug = AgroApi.eventSlug();
+    const params = new URLSearchParams(window.location.search);
     const form = document.getElementById('registerForm');
     const notice = document.getElementById('notice');
-    const mapSelect = document.getElementById('mapSelect');
+    const mapChoices = document.getElementById('mapChoices');
+    let selectedMap = params.get('map') || 'orchard';
 
     AgroApi.setEventLinks();
     document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
 
-    AgroApi.config().then(function (config) {
-      mapSelect.innerHTML = config.maps.map(function (map) {
-        return '<option value="' + AgroApi.escapeHtml(map) + '">' + AgroApi.title(map) + '</option>';
+    const mapDescriptions = {
+      orchard: 'Tree-row precision mission for canopy disease detection.',
+      forest: 'Dense canopy survey for early stress and outbreak signals.',
+      field: 'Crop-row scouting for fast hotspot treatment decisions.'
+    };
+
+    function renderMapChoices(maps) {
+      mapChoices.innerHTML = maps.map(function (map) {
+        const selected = map === selectedMap ? ' selected' : '';
+        return '<label class="map-choice' + selected + '" style="--map-image: url(/img/' + map + '-aerial.png)">' +
+          '<input type="radio" name="selected_map" value="' + AgroApi.escapeHtml(map) + '"' +
+          (map === selectedMap ? ' checked' : '') + '>' +
+          '<span class="selected-badge">Selected</span>' +
+          '<span class="map-choice-content"><span class="eyebrow">Mission Map</span><h3>' + AgroApi.title(map) +
+          '</h3><p>' + mapDescriptions[map] + '</p></span></label>';
       }).join('');
+    }
+
+    AgroApi.config().then(function (config) {
+      if (!config.maps.includes(selectedMap)) selectedMap = config.maps[0];
+      renderMapChoices(config.maps);
+    });
+
+    mapChoices.addEventListener('change', function (event) {
+      if (event.target.name !== 'selected_map') return;
+      selectedMap = event.target.value;
+      mapChoices.querySelectorAll('.map-choice').forEach(function (choice) {
+        choice.classList.toggle('selected', choice.querySelector('input').checked);
+      });
     });
 
     form.addEventListener('submit', function (event) {
       event.preventDefault();
       const data = Object.fromEntries(new FormData(form).entries());
       data.event_slug = eventSlug;
+      data.selected_map = selectedMap;
 
       AgroApi.post('/api/register', data)
         .then(function (result) {

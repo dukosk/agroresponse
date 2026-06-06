@@ -156,7 +156,10 @@ function getPlayer(id) {
 function saveScore(id, score) {
   db.prepare(`
     UPDATE registrations
-    SET score = ?, status = 'finished', finished_at = CURRENT_TIMESTAMP
+    SET score = ?,
+        status = 'finished',
+        created_at = COALESCE(created_at, CURRENT_TIMESTAMP),
+        finished_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `).run(score, id);
 }
@@ -172,6 +175,28 @@ function getEventLeaderboard(eventSlug) {
     .all(eventSlug);
 }
 
+function getTodayString() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getTodayEventLeaderboard(eventSlug) {
+  return db
+    .prepare(`
+      SELECT * FROM registrations
+      WHERE event_slug = ?
+        AND status = 'finished'
+        AND score IS NOT NULL
+        AND date(COALESCE(finished_at, created_at), 'localtime') = date('now', 'localtime')
+      ORDER BY score DESC, finished_at ASC
+      LIMIT 10
+    `)
+    .all(eventSlug);
+}
+
 function getGlobalLeaderboard() {
   return db
     .prepare(`
@@ -183,6 +208,19 @@ function getGlobalLeaderboard() {
     .all();
 }
 
+function getEventPlayers(eventSlug) {
+  return db
+    .prepare(`
+      SELECT
+        *,
+        COALESCE(created_at, started_at, finished_at, '') AS registered_at
+      FROM registrations
+      WHERE event_slug = ?
+      ORDER BY queue_number ASC
+    `)
+    .all(eventSlug);
+}
+
 module.exports = {
   createRegistration,
   getQueue,
@@ -192,5 +230,7 @@ module.exports = {
   getPlayer,
   saveScore,
   getEventLeaderboard,
+  getTodayEventLeaderboard,
   getGlobalLeaderboard,
+  getEventPlayers,
 };

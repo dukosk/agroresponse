@@ -19,10 +19,27 @@
   }
 
   function request(url, options) {
-    return fetch(url, options).then(function (response) {
-      return response.json().then(function (data) {
+    return fetch(url, options).catch(function (error) {
+      error.url = url;
+      throw error;
+    }).then(function (response) {
+      return response.json().catch(function () {
+        return { ok: false, error: 'Invalid JSON response.' };
+      }).then(function (data) {
+        if (data && data.ok === false) {
+          const apiError = new Error(data.error || 'API request failed.');
+          apiError.status = response.status;
+          apiError.details = data.details;
+          apiError.url = url;
+          throw apiError;
+        }
+
         if (!response.ok) {
-          throw new Error(data.error || 'Request failed.');
+          const error = new Error(data.error || 'Request failed.');
+          error.status = response.status;
+          error.details = data.details;
+          error.url = url;
+          throw error;
         }
         return data;
       });
@@ -31,6 +48,16 @@
 
   function get(url) {
     return request(url);
+  }
+
+  function logError(context, error) {
+    console.error(context, {
+      message: error && error.message,
+      status: error && error.status,
+      details: error && error.details,
+      url: error && error.url,
+      error: error,
+    });
   }
 
   function post(url, body) {
@@ -67,5 +94,6 @@
     config,
     escapeHtml,
     title,
+    logError,
   };
 })();

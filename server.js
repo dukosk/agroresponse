@@ -9,7 +9,9 @@ const {
   getPlayer,
   saveScore,
   getEventLeaderboard,
+  getTodayEventLeaderboard,
   getGlobalLeaderboard,
+  getEventPlayers,
 } = require('./src/db');
 const { DEFAULT_EVENT_SLUG, MAPS, TIMER_SECONDS, GRID_SIZE } = require('./src/gameConfig');
 
@@ -28,6 +30,15 @@ function cleanEventSlug(value) {
 
 function cleanString(value) {
   return String(value || '').trim();
+}
+
+function routeError(res, error, message) {
+  console.error(message, error);
+  res.status(500).json({
+    ok: false,
+    error: message,
+    details: error instanceof Error ? error.message : String(error),
+  });
 }
 
 app.get('/api/config', (req, res) => {
@@ -127,13 +138,87 @@ app.post('/api/score', (req, res) => {
 });
 
 app.get('/api/leaderboard', (req, res) => {
+  try {
+    const eventSlug = cleanEventSlug(req.query.event);
+    res.json({
+      ok: true,
+      eventSlug,
+      event: getEventLeaderboard(eventSlug),
+      today: getTodayEventLeaderboard(eventSlug),
+      global: getGlobalLeaderboard(),
+    });
+  } catch (error) {
+    routeError(res, error, 'Leaderboard could not be loaded.');
+  }
+});
+
+app.get('/api/leaderboard/today', (req, res) => {
+  try {
+    const eventSlug = cleanEventSlug(req.query.event);
+    res.json({
+      ok: true,
+      eventSlug,
+      today: getTodayEventLeaderboard(eventSlug),
+    });
+  } catch (error) {
+    routeError(res, error, 'Today leaderboard could not be loaded.');
+  }
+});
+
+app.get('/api/players', (req, res) => {
+  try {
+    const eventSlug = cleanEventSlug(req.query.event);
+    res.json({
+      ok: true,
+      eventSlug,
+      players: getEventPlayers(eventSlug),
+    });
+  } catch (error) {
+    routeError(res, error, 'Players could not be loaded.');
+  }
+});
+
+function csvCell(value) {
+  const text = String(value == null ? '' : value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function sendPlayersCsv(req, res) {
   const eventSlug = cleanEventSlug(req.query.event);
-  res.json({
-    ok: true,
-    eventSlug,
-    event: getEventLeaderboard(eventSlug),
-    global: getGlobalLeaderboard(),
-  });
+  const players = getEventPlayers(eventSlug);
+  const columns = [
+    ['queue_number', 'queue_number'],
+    ['name', 'name'],
+    ['email', 'email'],
+    ['selected_map', 'selected_map'],
+    ['status', 'status'],
+    ['score', 'score'],
+    ['created_at', 'created_at'],
+    ['started_at', 'started_at'],
+    ['finished_at', 'finished_at'],
+  ];
+  const rows = players.map((player) => columns.map((column) => csvCell(player[column[1]])).join(','));
+  const csv = [columns.map((column) => column[0]).join(','), ...rows].join('\n');
+
+  res.header('Content-Type', 'text/csv; charset=utf-8');
+  res.header('Content-Disposition', `attachment; filename="${eventSlug}-players.csv"`);
+  res.send(csv + '\n');
+}
+
+app.get('/api/players.csv', (req, res) => {
+  try {
+    sendPlayersCsv(req, res);
+  } catch (error) {
+    routeError(res, error, 'Players CSV could not be exported.');
+  }
+});
+
+app.get('/api/players/export', (req, res) => {
+  try {
+    sendPlayersCsv(req, res);
+  } catch (error) {
+    routeError(res, error, 'Players CSV could not be exported.');
+  }
 });
 
 app.listen(port, host, () => {

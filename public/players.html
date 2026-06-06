@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Players | Agro Drone Response</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <main class="shell">
+    <nav class="topnav">
+      <a href="/">Home</a>
+      <a data-event-link href="/register.html">Register</a>
+      <a data-event-link href="/queue.html">Queue</a>
+      <a data-event-link href="/leaderboard.html">Leaderboard</a>
+    </nav>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow" id="eventLabel">Event</p>
+          <h1>Players</h1>
+        </div>
+        <a class="button primary" id="exportCsv" href="/api/players.csv">Export CSV</a>
+      </div>
+
+      <div class="table-wrap admin-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Queue</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Map</th>
+              <th>Status</th>
+              <th>Score</th>
+              <th>Registered</th>
+            </tr>
+          </thead>
+          <tbody id="playersRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    const eventSlug = AgroApi.eventSlug();
+    const rowsEl = document.getElementById('playersRows');
+
+    AgroApi.setEventLinks();
+    document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+    document.getElementById('exportCsv').href = '/api/players/export?event=' + encodeURIComponent(eventSlug);
+
+    function statusBadge(status) {
+      return '<span class="status-badge status-' + AgroApi.escapeHtml(status) + '">' + AgroApi.escapeHtml(status) + '</span>';
+    }
+
+    AgroApi.get('/api/players?event=' + encodeURIComponent(eventSlug))
+      .then(function (data) {
+        if (!data.players.length) {
+          rowsEl.innerHTML = '<tr><td colspan="7">No registered players.</td></tr>';
+          return;
+        }
+
+        rowsEl.innerHTML = data.players.map(function (player) {
+          return '<tr><td>#' + player.queue_number + '</td><td>' + AgroApi.escapeHtml(player.name) +
+            '</td><td>' + AgroApi.escapeHtml(player.email) + '</td><td>' + AgroApi.title(player.selected_map) +
+            '</td><td>' + statusBadge(player.status) + '</td><td>' + (player.score == null ? '-' : player.score) +
+            '</td><td>' + AgroApi.escapeHtml(player.registered_at || player.created_at) + '</td></tr>';
+        }).join('');
+      })
+      .catch(function (error) {
+        AgroApi.logError('Players API failed', error);
+        rowsEl.innerHTML = '<tr><td colspan="7">Players could not be loaded.</td></tr>';
+      });
+  </script>
+</body>
+</html>

@@ -9,13 +9,40 @@
 <body>
   <main class="shell home">
     <section class="hero">
-      <p class="eyebrow" id="eventLabel">Event: agrokomplex-nitra</p>
-      <h1>Agro Drone Response</h1>
-      <p class="lead">Register pilots, manage the live queue, fly the response grid, and track event scores.</p>
-      <div class="actions">
-        <a class="button primary" data-event-link href="/register.html">Register Player</a>
-        <a class="button" data-event-link href="/queue.html">Queue Board</a>
-        <a class="button" data-event-link href="/leaderboard.html">Leaderboard</a>
+      <div>
+        <p class="eyebrow" id="eventLabel">Event: agrokomplex-nitra</p>
+        <h1>Agro Drone Response</h1>
+        <p class="lead">Select a mission zone, pilot the response drone, and identify disease hotspots from aerial intelligence.</p>
+        <div class="actions">
+          <a class="button primary" data-event-link href="/register.html">Register Pilot</a>
+          <a class="button" data-event-link href="/queue.html">Exhibition Queue</a>
+          <a class="button" data-event-link href="/leaderboard.html">Leaderboard</a>
+          <a class="button" data-event-link href="/players.html">Players</a>
+        </div>
+      </div>
+
+      <div class="mission-grid">
+        <a class="mission-card" data-event-link href="/register.html?map=orchard" style="--map-image: url('/img/orchard-aerial.png')">
+          <div class="mission-card-content">
+            <p class="eyebrow">Mission 01</p>
+            <h2>Orchard</h2>
+            <p>Scan tree rows, locate infected canopy zones, and protect high-value fruit production.</p>
+          </div>
+        </a>
+        <a class="mission-card" data-event-link href="/register.html?map=forest" style="--map-image: url('/img/forest-aerial.png')">
+          <div class="mission-card-content">
+            <p class="eyebrow">Mission 02</p>
+            <h2>Forest</h2>
+            <p>Survey dense canopy, respond to stress markers, and contain spreading damage quickly.</p>
+          </div>
+        </a>
+        <a class="mission-card" data-event-link href="/register.html?map=field" style="--map-image: url('/img/field-aerial.png')">
+          <div class="mission-card-content">
+            <p class="eyebrow">Mission 03</p>
+            <h2>Field</h2>
+            <p>Follow crop lines, detect disease hotspots, and keep treatment zones precise.</p>
+          </div>
+        </a>
       </div>
     </section>
   </main>

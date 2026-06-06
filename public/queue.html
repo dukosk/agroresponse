@@ -7,46 +7,46 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <main class="shell">
-    <nav class="topnav">
-      <a href="/">Home</a>
-      <a data-event-link href="/register.html">Register</a>
-      <a data-event-link href="/leaderboard.html">Leaderboard</a>
-    </nav>
+  <main class="shell queue-shell">
+    <section class="queue-exhibit">
+      <div class="queue-main">
+        <div class="queue-topbar">
+          <div>
+            <p class="eyebrow" id="eventLabel">Event</p>
+            <h1>Live Mission Queue</h1>
+          </div>
+          <nav class="topnav">
+            <a href="/">Home</a>
+            <a data-event-link href="/register.html">Register</a>
+            <a data-event-link href="/leaderboard.html">Leaderboard</a>
+            <a data-event-link href="/players.html">Players</a>
+          </nav>
+        </div>
 
-    <section class="panel">
-      <div class="section-head">
+        <div class="current-player" id="currentCard"></div>
+
         <div>
-          <p class="eyebrow" id="eventLabel">Event</p>
-          <h1>Queue Board</h1>
-        </div>
-        <div class="inline-actions">
-          <button class="button primary" id="callNext" type="button">Call Next Player</button>
-          <button class="button" id="finishCurrent" type="button">Mark Current Finished</button>
+          <div class="next-player" id="nextCard"></div>
+          <div class="inline-actions">
+            <button class="button primary" id="callNext" type="button">Call Next Player</button>
+            <button class="button" id="finishCurrent" type="button">Mark Current Finished</button>
+          </div>
+          <p class="message" id="queueMessage"></p>
         </div>
       </div>
 
-      <p class="message" id="queueMessage"></p>
+      <div class="queue-side">
+        <div class="current-leader" id="currentLeader"></div>
 
-      <div class="queue-grid">
-        <article class="status-card current" id="currentCard"></article>
-        <article class="status-card" id="nextCard"></article>
-      </div>
+        <div class="waiting-list">
+          <h2>Waiting Pilots</h2>
+          <div id="waitingRows"></div>
+        </div>
 
-      <h2>Waiting Players</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Queue</th>
-              <th>Name</th>
-              <th>Map</th>
-              <th>Registered</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="waitingRows"></tbody>
-        </table>
+        <div class="leaderboard-preview">
+          <h2>Today Top Scores</h2>
+          <div id="leaderboardPreview"></div>
+        </div>
       </div>
     </section>
   </main>
@@ -57,6 +57,8 @@
     const currentCard = document.getElementById('currentCard');
     const nextCard = document.getElementById('nextCard');
     const waitingRows = document.getElementById('waitingRows');
+    const leaderboardPreview = document.getElementById('leaderboardPreview');
+    const currentLeader = document.getElementById('currentLeader');
     const message = document.getElementById('queueMessage');
 
     AgroApi.setEventLinks();
@@ -64,14 +66,22 @@
 
     function playerCard(label, player, isCurrent) {
       if (!player) {
-        return '<span>' + label + '</span><strong>' + (isCurrent ? 'No active player' : 'No one waiting') +
-          '</strong><small>' + (isCurrent ? 'Call the next pilot to begin.' : 'New pilots appear here after registration.') + '</small>';
+        if (isCurrent) {
+          return '<div class="player-label">' + label + '</div><div class="player-name">Ready</div>' +
+            '<div class="player-meta">Call the next pilot</div>';
+        }
+        return '<span class="player-label">' + label + '</span><strong>No one waiting</strong><div class="player-meta">New pilots appear after registration</div>';
       }
 
       const gameLink = isCurrent ? '<a class="button primary" href="/game.html?id=' + player.id + '">Start Game</a>' : '';
       const skipButton = isCurrent ? '<button class="button muted" data-skip="' + player.id + '" type="button">Skip Player</button>' : '';
-      return '<span>' + label + '</span><strong>#' + player.queue_number + ' ' + AgroApi.escapeHtml(player.name) +
-        '</strong><small>' + AgroApi.title(player.selected_map) + ' map</small><div class="actions">' + gameLink + skipButton + '</div>';
+      if (isCurrent) {
+        return '<div class="player-label">' + label + '</div><div class="player-name">' + AgroApi.escapeHtml(player.name) +
+          '</div><div class="player-meta">Queue #' + player.queue_number + ' · ' + AgroApi.title(player.selected_map) +
+          ' Mission</div><div class="actions">' + gameLink + skipButton + '</div>';
+      }
+      return '<span class="player-label">' + label + '</span><strong>#' + player.queue_number + ' ' + AgroApi.escapeHtml(player.name) +
+        '</strong><div class="player-meta">' + AgroApi.title(player.selected_map) + ' Mission</div>';
     }
 
     function renderQueue(data) {
@@ -79,22 +89,62 @@
       nextCard.innerHTML = playerCard('Next Player', data.queue.next, false);
 
       if (!data.queue.waiting.length) {
-        waitingRows.innerHTML = '<tr><td colspan="5">No waiting players.</td></tr>';
+        waitingRows.innerHTML = '<div class="empty-state">No waiting players.</div>';
         return;
       }
 
       waitingRows.innerHTML = data.queue.waiting.map(function (player) {
-        return '<tr><td>#' + player.queue_number + '</td><td>' + AgroApi.escapeHtml(player.name) +
-          '</td><td>' + AgroApi.title(player.selected_map) + '</td><td>' + player.created_at +
-          '</td><td><button class="button small" data-skip="' + player.id + '" type="button">Skip</button></td></tr>';
+        return '<div class="waiting-row"><span class="queue-number">#' + player.queue_number + '</span><strong>' +
+          AgroApi.escapeHtml(player.name) + '</strong><button class="button small" data-skip="' + player.id +
+          '" type="button">Skip</button><span></span><span class="message">' + AgroApi.title(player.selected_map) +
+          ' Mission</span><span></span></div>';
+      }).join('');
+    }
+
+    function renderLeader(data) {
+      const eventTop = (data.event || []).slice(0, 1);
+
+      if (!eventTop.length) {
+        currentLeader.innerHTML = '<h2>Current Leader</h2><div class="empty-state">No leader yet.</div>';
+      } else {
+        const leader = eventTop[0];
+        currentLeader.innerHTML = '<h2>Current Leader</h2><div class="leader-card"><strong>' +
+          AgroApi.escapeHtml(leader.name) + '</strong><span class="rank-score">' + leader.score +
+          '</span><span class="message">' + AgroApi.title(leader.selected_map) + ' Mission</span></div>';
+      }
+    }
+
+    function renderTodayScores(data) {
+      const top = (data.today || []).slice(0, 5);
+      if (!top.length) {
+        leaderboardPreview.innerHTML = '<div class="empty-state">No scores today yet.</div>';
+        return;
+      }
+
+      leaderboardPreview.innerHTML = top.map(function (row, index) {
+        return '<div class="preview-row"><span class="rank-number">' + (index + 1) + '</span><strong>' +
+          AgroApi.escapeHtml(row.name) + '</strong><span class="rank-score">' + row.score + '</span></div>';
       }).join('');
     }
 
     function refreshQueue() {
       AgroApi.get('/api/queue?event=' + encodeURIComponent(eventSlug))
         .then(renderQueue)
-        .catch(function () {
+        .catch(function (error) {
+          AgroApi.logError('Queue API failed', error);
           message.textContent = 'Queue could not be loaded.';
+        });
+      AgroApi.get('/api/leaderboard?event=' + encodeURIComponent(eventSlug))
+        .then(renderLeader)
+        .catch(function (error) {
+          AgroApi.logError('Queue leader API failed', error);
+          currentLeader.innerHTML = '<h2>Current Leader</h2><div class="empty-state">Leader could not be loaded.</div>';
+        });
+      AgroApi.get('/api/leaderboard/today?event=' + encodeURIComponent(eventSlug))
+        .then(renderTodayScores)
+        .catch(function (error) {
+          AgroApi.logError('Queue today leaderboard API failed', error);
+          leaderboardPreview.innerHTML = '<div class="empty-state">Today scores could not be loaded.</div>';
         });
     }
 
