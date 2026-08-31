@@ -20,6 +20,7 @@
   const stationLeader = document.getElementById('stationLeader');
   const stationTodayScores = document.getElementById('stationTodayScores');
   const stationMode = document.body.dataset.gameMode === 'station';
+  const singleStationMode = document.body.dataset.gameMode === 'single';
 
   const keys = new Set();
 
@@ -63,6 +64,9 @@
   }
 
   function playerMeta(player) {
+    if (singleStationMode) {
+      return missionLabel(player.selected_map) + ' · ' + t('diseaseResponse');
+    }
     return t('queue') + ' #' + player.queue_number + ' · ' + missionLabel(player.selected_map) + ' · ' + t('diseaseResponse');
   }
 
@@ -461,6 +465,7 @@
           hits: hits,
           misses: misses,
           accuracy: accuracy,
+          selectedMap: selectedMap,
         };
         renderResult();
         if (stationMode) {
@@ -476,6 +481,25 @@
 
   function renderResult() {
     if (!lastResult) return;
+
+    if (singleStationMode) {
+      gameLayout.classList.add('result-mode');
+      messageEl.innerHTML = '<div class="single-result-heading"><p class="eyebrow">' + t('missionComplete') +
+        '</p><h2>' + t('missionResults') + '</h2></div><div class="final-result single-final-result">' +
+        '<div class="result-score"><span>' + t('finalScore') + '</span><strong>' + lastResult.score + '</strong></div>' +
+        '<div><span>' + t('todayRank') + '</span><strong>#' + lastResult.todayRank + '</strong></div>' +
+        '<div><span>' + t('eventRank') + '</span><strong>#' + lastResult.eventRank + '</strong></div>' +
+        '<div><span>' + t('hits') + '</span><strong>' + lastResult.hits + '</strong></div>' +
+        '<div><span>' + t('misses') + '</span><strong>' + lastResult.misses + '</strong></div>' +
+        '<div><span>' + t('accuracy') + '</span><strong>' + lastResult.accuracy + '%</strong></div>' +
+        '<div><span>' + t('selectedMission') + '</span><strong>' +
+        AgroApi.escapeHtml(AgroApi.title(lastResult.selectedMap)) + '</strong></div>' +
+        '</div><div class="actions single-result-actions"><button class="button primary" type="button" data-next-player>' +
+        t('nextPlayer') + '</button><a class="button" href="/leaderboard.html?event=' +
+        encodeURIComponent(lastResult.eventSlug) + '">' + t('leaderboard') + '</a></div>';
+      return;
+    }
+
     messageEl.innerHTML = '<div class="final-result">' +
       '<div><span>' + t('finalScore') + '</span><strong>' + lastResult.score + '</strong></div>' +
       '<div><span>' + t('eventRank') + '</span><strong>#' + lastResult.eventRank + '</strong></div>' +
@@ -553,6 +577,50 @@
     if (stationMode) {
       if (stationWaiting) stationWaiting.classList.add('hidden');
       if (gameLayout) gameLayout.classList.remove('hidden');
+    }
+    if (singleStationMode && gameLayout) {
+      gameLayout.classList.remove('hidden', 'result-mode');
+    }
+    draw();
+  }
+
+  function startSingleStationPlayer(player) {
+    return AgroApi.config()
+      .then(applyConfig)
+      .catch(function (error) {
+        AgroApi.logError('Single-station config load failed', error);
+      })
+      .then(function () {
+        setPlayer(player);
+        startGame();
+      });
+  }
+
+  function resetSingleStationGame() {
+    running = false;
+    saved = false;
+    registrationId = null;
+    activePlayer = null;
+    activeStationPlayerId = null;
+    lastResult = null;
+    lastMessageKey = null;
+    targets = [];
+    keys.clear();
+    score = 0;
+    hits = 0;
+    misses = 0;
+    timeLeft = timerSeconds;
+    window.clearInterval(intervalId);
+    window.clearInterval(spawnTimerId);
+    scoreEl.textContent = score;
+    timeEl.textContent = timeLeft;
+    messageEl.textContent = '';
+    playerNameEl.textContent = t('appTitle');
+    playerMetaEl.textContent = '';
+    startButton.disabled = true;
+    if (gameLayout) {
+      gameLayout.classList.add('hidden');
+      gameLayout.classList.remove('result-mode');
     }
     draw();
   }
@@ -639,6 +707,12 @@
   }
 
   function loadPlayer() {
+    if (singleStationMode) {
+      if (gameLayout) gameLayout.classList.add('hidden');
+      draw();
+      return;
+    }
+
     if (stationMode) {
       if (gameLayout) gameLayout.classList.add('hidden');
       if (stationWaiting) stationWaiting.classList.remove('hidden');
@@ -682,6 +756,12 @@
 
   spawnTarget();
   startButton.addEventListener('click', startGame);
+  if (singleStationMode) {
+    window.AgroGame = {
+      startSingleStationPlayer: startSingleStationPlayer,
+      resetSingleStationGame: resetSingleStationGame,
+    };
+  }
   loadPlayer();
   requestAnimationFrame(loop);
   window.addEventListener('beforeunload', function () {

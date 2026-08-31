@@ -53,6 +53,26 @@ function createRegistration({ eventSlug, name, email, selectedMap }) {
   return getPlayer(result.lastInsertRowid);
 }
 
+function createPlayingRegistration({ eventSlug, name, email, selectedMap }) {
+  const queueNumber = nextQueueNumber(eventSlug);
+  const result = db
+    .prepare(`
+      INSERT INTO registrations (
+        event_slug,
+        queue_number,
+        name,
+        email,
+        selected_map,
+        status,
+        started_at
+      )
+      VALUES (?, ?, ?, ?, ?, 'playing', CURRENT_TIMESTAMP)
+    `)
+    .run(eventSlug, queueNumber, name, email, selectedMap);
+
+  return getPlayer(result.lastInsertRowid);
+}
+
 function getWaitingPosition(eventSlug, queueNumber) {
   const row = db
     .prepare(`
@@ -299,6 +319,7 @@ function getEventPlayers(eventSlug) {
 
 module.exports = {
   createRegistration,
+  createPlayingRegistration,
   getQueue,
   getWaitingPosition,
   resetWaitingQueue,

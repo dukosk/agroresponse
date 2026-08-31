@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Single Station | Agro Drone Response</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-game-mode="single">
+  <main class="shell single-station-shell">
+    <nav class="topnav single-station-nav">
+      <a href="/" data-i18n="home">Home</a>
+      <a href="/leaderboard.html?event=agrokomplex-nitra" data-i18n="leaderboard">Leaderboard</a>
+      <a href="/players.html?event=agrokomplex-nitra" data-i18n="players">Players</a>
+    </nav>
+
+    <section class="panel single-registration" id="singleRegistration">
+      <header class="single-registration-head">
+        <div>
+          <p class="eyebrow" data-i18n="mainExhibitionMode">Main Exhibition Mode</p>
+          <h1 data-i18n="singleStation">Single Station</h1>
+          <p class="lead" data-i18n="singleStationLead">Register the next pilot, choose a mission, and start immediately on this screen.</p>
+        </div>
+        <div class="event-chip">
+          <span data-i18n="event">Event</span>
+          <strong id="singleEventName">Agrokomplex Nitra</strong>
+        </div>
+      </header>
+
+      <div class="notice hidden" id="singleNotice" role="alert"></div>
+
+      <form class="form single-station-form" id="singleStationForm">
+        <div class="form-grid">
+          <label>
+            <span data-i18n="playerEmail">Player Email</span>
+            <input id="singleEmail" name="email" type="email" required maxlength="180" autocomplete="email">
+          </label>
+
+          <label>
+            <span><span data-i18n="displayName">Display Name / Nickname</span> <small data-i18n="optional">(optional)</small></span>
+            <input id="singleName" name="name" maxlength="60" autocomplete="nickname">
+            <small class="input-help" data-i18n="displayNameHelp">Leave blank to use the safe part of the email before @.</small>
+          </label>
+        </div>
+
+        <div>
+          <p class="eyebrow" data-i18n="selectMission">Select Mission</p>
+          <div class="map-choice-grid single-map-choice-grid" id="singleMapChoices"></div>
+        </div>
+
+        <div class="single-form-footer">
+          <p class="privacy-note"><span aria-hidden="true">●</span> <span data-i18n="emailPrivacyNote">Email is stored privately and is never shown during the mission or results.</span></p>
+          <button class="button primary start-mission-button" id="singleStartMission" type="submit" data-i18n="startMission">Start Mission</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="game-layout single-game-layout hidden" id="gameLayout">
+      <div class="game-info">
+        <p class="eyebrow" id="playerMeta"></p>
+        <h1 id="playerName">Agro Drone Response</h1>
+        <div class="live-game-stats">
+          <div class="stats">
+            <span><span data-i18n="score">Score</span> <strong id="score">0</strong></span>
+            <span><span data-i18n="time">Time</span> <strong id="time">45</strong>s</span>
+          </div>
+          <p class="hint" data-i18n="gameStationHint">Move with WASD or arrows. Press SPACE on a red hotspot.</p>
+        </div>
+        <button class="hidden" id="startGame" type="button" disabled data-i18n="startMission">Start Mission</button>
+        <div id="gameMessage" class="message"></div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="gameCanvas" width="960" height="960" aria-label="Agro Drone Response game"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/game.js"></script>
+  <script src="/js/single-station.js"></script>
+</body>
+</html>

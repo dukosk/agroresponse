@@ -185,6 +185,41 @@ h3 {
     margin-top: 22px;
 }
 
+.home-mode-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 18px;
+    margin-top: 30px;
+}
+
+.home-mode-card {
+    padding: clamp(20px, 2.5vw, 34px);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.home-mode-card.primary-mode {
+    border-color: rgba(123, 217, 90, 0.52);
+    background: linear-gradient(135deg, rgba(123, 217, 90, 0.18), rgba(66, 212, 163, 0.08));
+}
+
+.home-mode-card h2 {
+    margin-bottom: 10px;
+    font-size: clamp(1.8rem, 3vw, 3.6rem);
+}
+
+.home-mode-card p:not(.eyebrow) {
+    margin-bottom: 0;
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.5;
+}
+
+.home-admin-links {
+    margin-top: 16px;
+}
+
 .qr-section,
 .qr-compact {
     display: flex;
@@ -756,6 +791,202 @@ tr:last-child td {
     width: min(1680px, calc(100% - 32px));
 }
 
+.single-station-shell {
+    width: min(1720px, calc(100% - 32px));
+    padding: 16px 0 28px;
+}
+
+.single-station-nav {
+    margin-bottom: 14px;
+}
+
+.single-playing .single-station-nav {
+    display: none;
+}
+
+.single-registration {
+    padding: clamp(22px, 2.4vw, 38px);
+}
+
+.single-registration-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    margin-bottom: 20px;
+}
+
+.single-registration-head h1 {
+    margin-bottom: 8px;
+    font-size: clamp(2.5rem, 4.6vw, 5.4rem);
+}
+
+.single-registration-head .lead {
+    font-size: clamp(1rem, 1.35vw, 1.3rem);
+}
+
+.event-chip {
+    min-width: 230px;
+    display: grid;
+    gap: 6px;
+    padding: 16px 18px;
+    border: 1px solid rgba(123, 217, 90, 0.34);
+    border-radius: 8px;
+    background: rgba(123, 217, 90, 0.1);
+}
+
+.event-chip span {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.event-chip strong {
+    font-size: 1.25rem;
+}
+
+.single-station-form {
+    gap: 18px;
+}
+
+.single-station-form label small {
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.single-map-choice-grid {
+    gap: clamp(12px, 1.4vw, 22px);
+}
+
+.single-map-choice {
+    min-height: clamp(190px, 17vw, 270px);
+}
+
+.single-map-choice h3 {
+    font-size: clamp(1.7rem, 2.6vw, 3rem);
+}
+
+.single-map-choice p {
+    font-size: clamp(0.88rem, 1vw, 1.05rem);
+}
+
+.single-form-footer {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.8fr) minmax(360px, 1.2fr);
+    gap: 18px;
+    align-items: center;
+}
+
+.privacy-note {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.privacy-note > span:first-child {
+    color: var(--accent);
+}
+
+.single-game-layout {
+    min-height: calc(100vh - 96px);
+    grid-template-columns: minmax(300px, 410px) minmax(0, 1fr);
+    align-items: center;
+}
+
+.single-playing .single-game-layout {
+    min-height: calc(100vh - 44px);
+}
+
+.single-game-layout .game-info h1 {
+    overflow-wrap: anywhere;
+}
+
+.single-game-layout .hint {
+    font-size: clamp(1rem, 1.25vw, 1.25rem);
+}
+
+.single-game-layout.result-mode {
+    width: min(1460px, 100%);
+    display: block;
+    margin: 0 auto;
+}
+
+.single-game-layout.result-mode .canvas-wrap,
+.single-game-layout.result-mode .live-game-stats {
+    display: none;
+}
+
+.single-game-layout.result-mode .game-info {
+    min-height: calc(100vh - 100px);
+    display: grid;
+    align-content: center;
+    padding: clamp(28px, 4vw, 64px);
+}
+
+.single-game-layout.result-mode .game-info > .eyebrow {
+    margin-bottom: 6px;
+}
+
+.single-game-layout.result-mode .game-info > h1 {
+    margin-bottom: clamp(18px, 2vw, 30px);
+    font-size: clamp(2.4rem, 4.4vw, 5.6rem);
+}
+
+.single-result-heading h2 {
+    margin-bottom: 18px;
+    font-size: clamp(1.55rem, 2.4vw, 2.8rem);
+}
+
+.single-final-result {
+    grid-template-columns: minmax(190px, 1.2fr) repeat(3, minmax(0, 1fr));
+    gap: clamp(10px, 1.3vw, 18px);
+    margin-bottom: 0;
+}
+
+.single-final-result .result-score {
+    grid-row: span 2;
+    display: grid;
+    align-content: center;
+    border-color: rgba(123, 217, 90, 0.56);
+    background: linear-gradient(145deg, rgba(123, 217, 90, 0.2), rgba(66, 212, 163, 0.08));
+}
+
+.single-final-result > div {
+    min-height: 112px;
+    display: grid;
+    align-content: center;
+}
+
+.single-final-result span {
+    line-height: 1.2;
+}
+
+.single-final-result strong {
+    overflow: visible;
+    font-size: clamp(1.75rem, 3.1vw, 3.8rem);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.single-final-result .result-score strong {
+    font-size: clamp(3.2rem, 6vw, 7rem);
+}
+
+.single-result-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: clamp(18px, 2vw, 28px);
+}
+
+.single-result-actions .button {
+    min-height: clamp(62px, 6vw, 88px);
+    font-size: clamp(1.08rem, 1.6vw, 1.5rem);
+}
+
 .station-shell {
     min-height: 100vh;
     display: grid;
@@ -957,6 +1188,7 @@ tr:last-child td {
 @media (max-width: 980px) {
     .mission-grid,
     .map-choice-grid,
+    .home-mode-grid,
     .leaderboards,
     .queue-exhibit,
     .station-waiting,
@@ -983,5 +1215,38 @@ tr:last-child td {
 
     .station-waiting {
         min-height: auto;
+    }
+
+    .single-registration-head,
+    .single-form-footer {
+        grid-template-columns: 1fr;
+    }
+
+    .single-registration-head {
+        display: grid;
+    }
+
+    .event-chip {
+        min-width: 0;
+    }
+
+    .single-final-result {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .single-final-result .result-score {
+        grid-column: span 2;
+        grid-row: auto;
+    }
+}
+
+@media (max-width: 620px) {
+    .single-final-result,
+    .single-result-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .single-final-result .result-score {
+        grid-column: auto;
     }
 }

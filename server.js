@@ -3,6 +3,7 @@ const path = require('path');
 const QRCode = require('qrcode');
 const {
   createRegistration,
+  createPlayingRegistration,
   getQueue,
   getWaitingPosition,
   resetWaitingQueue,
@@ -47,6 +48,26 @@ function cleanEventSlug(value) {
 
 function cleanString(value) {
   return String(value || '').trim();
+}
+
+function cleanDisplayName(value, email) {
+  const supplied = cleanString(value)
+    .replace(/[\u0000-\u001f\u007f]/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, 60)
+    .trim();
+
+  if (supplied) return supplied;
+
+  const emailLocalPart = cleanString(email).split('@')[0] || '';
+  const derived = emailLocalPart
+    .replace(/[._+\-]+/g, ' ')
+    .replace(/[^a-zA-Z0-9 ]+/g, '')
+    .replace(/\s+/g, ' ')
+    .slice(0, 60)
+    .trim();
+
+  return derived || 'Pilot';
 }
 
 function routeError(res, error, message) {
@@ -123,6 +144,29 @@ app.post('/api/register', (req, res) => {
     waitingPosition,
     playersBefore: Math.max(0, waitingPosition - 1),
   });
+});
+
+app.post('/api/single-station/register', (req, res) => {
+  try {
+    const eventSlug = DEFAULT_EVENT_SLUG;
+    const email = cleanString(req.body.email);
+    const selectedMap = cleanString(req.body.selected_map);
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ ok: false, error: 'Valid email is required.' });
+    }
+
+    if (!MAPS.includes(selectedMap)) {
+      return res.status(400).json({ ok: false, error: 'Choose a valid map.' });
+    }
+
+    const name = cleanDisplayName(req.body.name, email);
+    const registration = createPlayingRegistration({ eventSlug, name, email, selectedMap });
+
+    res.json({ ok: true, registration });
+  } catch (error) {
+    routeError(res, error, 'Single-station registration could not be created.');
+  }
 });
 
 app.get('/api/queue', (req, res) => {
