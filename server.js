@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const QRCode = require('qrcode');
 const {
   createRegistration,
   getQueue,
@@ -18,12 +19,15 @@ const {
   getEventPlayers,
 } = require('./src/db');
 const {
+  EVENT_CONFIG,
   EVENT_NAME,
+  EVENT_SLUG,
   DEFAULT_EVENT_SLUG,
   MAPS,
   TIMER_SECONDS,
   GAME_DURATION_SECONDS,
   SPAWN_INTERVAL_MS,
+  MAX_ACTIVE_HOTSPOTS,
   MAX_ACTIVE_TARGETS,
   GRID_SIZE,
 } = require('./src/gameConfig');
@@ -56,14 +60,40 @@ function routeError(res, error, message) {
 
 app.get('/api/config', (req, res) => {
   res.json({
+    eventConfig: EVENT_CONFIG,
     eventName: EVENT_NAME,
+    eventSlug: EVENT_SLUG,
     defaultEventSlug: DEFAULT_EVENT_SLUG,
     maps: MAPS,
     timerSeconds: TIMER_SECONDS,
     gameDurationSeconds: GAME_DURATION_SECONDS,
     spawnIntervalMs: SPAWN_INTERVAL_MS,
+    maxActiveHotspots: MAX_ACTIVE_HOTSPOTS,
     maxActiveTargets: MAX_ACTIVE_TARGETS,
     gridSize: GRID_SIZE,
+  });
+});
+
+app.get('/api/register-qr.svg', (req, res) => {
+  const eventSlug = cleanEventSlug(req.query.event);
+  const origin = `${req.protocol}://${req.get('host')}`;
+  const registerUrl = `${origin}/register.html?event=${encodeURIComponent(eventSlug)}`;
+
+  QRCode.toString(registerUrl, {
+    type: 'svg',
+    errorCorrectionLevel: 'M',
+    margin: 1,
+    color: {
+      dark: '#102417',
+      light: '#f4fff7',
+    },
+  }, (error, svg) => {
+    if (error) {
+      return routeError(res, error, 'Registration QR could not be generated.');
+    }
+
+    res.header('Content-Type', 'image/svg+xml; charset=utf-8');
+    res.send(svg);
   });
 });
 
@@ -87,12 +117,27 @@ app.post('/api/register', (req, res) => {
 
   const registration = createRegistration({ eventSlug, name, email, selectedMap });
   const waitingPosition = getWaitingPosition(eventSlug, registration.queue_number);
-  res.json({ ok: true, registration, waitingPosition });
+  res.json({
+    ok: true,
+    registration,
+    waitingPosition,
+    playersBefore: Math.max(0, waitingPosition - 1),
+  });
 });
 
 app.get('/api/queue', (req, res) => {
   const eventSlug = cleanEventSlug(req.query.event);
   res.json({ ok: true, eventSlug, queue: getQueue(eventSlug) });
+});
+
+app.get('/api/queue/current', (req, res) => {
+  try {
+    const eventSlug = cleanEventSlug(req.query.event);
+    const queue = getQueue(eventSlug);
+    res.json({ ok: true, eventSlug, current: queue.current || null });
+  } catch (error) {
+    routeError(res, error, 'Current queue player could not be loaded.');
+  }
 });
 
 app.post('/api/queue/call-next', (req, res) => {

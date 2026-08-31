@@ -11,19 +11,20 @@
     <section class="hero">
       <div>
         <p class="eyebrow" id="eventLabel">Event: agrokomplex-nitra</p>
-        <h1>Agro Drone Response</h1>
-        <p class="lead">Select a mission zone, pilot the response drone, and identify disease hotspots from aerial intelligence.</p>
+        <h1 data-i18n="appTitle">Agro Drone Response</h1>
+        <p class="lead" data-i18n="homeLead">Select a mission zone, pilot the response drone, and identify disease hotspots from aerial intelligence.</p>
         <div class="actions">
-          <a class="button primary" data-event-link href="/register.html">Register Pilot</a>
-          <a class="button" data-event-link href="/queue.html">Exhibition Queue</a>
-          <a class="button" data-event-link href="/leaderboard.html">Leaderboard</a>
-          <a class="button" data-event-link href="/players.html">Players</a>
+          <a class="button primary" data-event-link data-i18n="registerPilot" href="/register.html">Register Pilot</a>
+          <a class="button" data-event-link data-i18n="exhibitionQueue" href="/queue.html">Exhibition Queue</a>
+          <a class="button" data-event-link data-i18n="gameStation" href="/game-station.html">Game Station</a>
+          <a class="button" data-event-link data-i18n="leaderboard" href="/leaderboard.html">Leaderboard</a>
+          <a class="button" data-event-link data-i18n="players" href="/players.html">Players</a>
         </div>
         <div class="qr-section">
-          <div class="qr-code" aria-hidden="true"></div>
+          <img class="qr-code-img" id="homeQr" data-i18n-alt="qrRegistration" alt="Registration QR code">
           <div>
-            <p class="eyebrow">QR Registration</p>
-            <h2>Scan to Join the Mission Queue</h2>
+            <p class="eyebrow" data-i18n="qrRegistration">QR Registration</p>
+            <h2 data-i18n="scanJoinQueue">Scan to Join the Mission Queue</h2>
             <p class="lead" id="registerUrl">/register.html</p>
           </div>
         </div>
@@ -32,33 +33,39 @@
       <div class="mission-grid">
         <a class="mission-card" data-event-link href="/register.html?map=orchard" style="--map-image: url('/img/orchard-aerial.png')">
           <div class="mission-card-content">
-            <p class="eyebrow">Mission 01</p>
-            <h2>Orchard</h2>
-            <p>Scan tree rows, locate infected canopy zones, and protect high-value fruit production.</p>
+            <p class="eyebrow" data-i18n="mission01">Mission 01</p>
+            <h2 data-i18n="orchard">Orchard</h2>
+            <p data-i18n="orchardDesc">Scan tree rows, locate infected canopy zones, and protect high-value fruit production.</p>
           </div>
         </a>
         <a class="mission-card" data-event-link href="/register.html?map=forest" style="--map-image: url('/img/forest-aerial.png')">
           <div class="mission-card-content">
-            <p class="eyebrow">Mission 02</p>
-            <h2>Forest</h2>
-            <p>Survey dense canopy, respond to stress markers, and contain spreading damage quickly.</p>
+            <p class="eyebrow" data-i18n="mission02">Mission 02</p>
+            <h2 data-i18n="forest">Forest</h2>
+            <p data-i18n="forestDesc">Survey dense canopy, respond to stress markers, and contain spreading damage quickly.</p>
           </div>
         </a>
         <a class="mission-card" data-event-link href="/register.html?map=field" style="--map-image: url('/img/field-aerial.png')">
           <div class="mission-card-content">
-            <p class="eyebrow">Mission 03</p>
-            <h2>Field</h2>
-            <p>Follow crop lines, detect disease hotspots, and keep treatment zones precise.</p>
+            <p class="eyebrow" data-i18n="mission03">Mission 03</p>
+            <h2 data-i18n="field">Field</h2>
+            <p data-i18n="fieldDesc">Follow crop lines, detect disease hotspots, and keep treatment zones precise.</p>
           </div>
         </a>
       </div>
     </section>
   </main>
   <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
   <script>
     AgroApi.setEventLinks();
-    document.getElementById('eventLabel').textContent = 'Event: ' + AgroApi.eventSlug();
+    function renderHomeText() {
+      document.getElementById('eventLabel').textContent = AgroI18n.t('eventLabel', { event: AgroApi.eventSlug() });
+    }
+    renderHomeText();
     document.getElementById('registerUrl').textContent = window.location.origin + '/register.html?event=' + encodeURIComponent(AgroApi.eventSlug());
+    document.getElementById('homeQr').src = '/api/register-qr.svg?event=' + encodeURIComponent(AgroApi.eventSlug());
+    window.addEventListener('agro:languagechange', renderHomeText);
   </script>
 </body>
 </html>

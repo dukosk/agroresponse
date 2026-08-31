@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Game Station | Agro Drone Response</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-game-mode="station">
+  <main class="shell game-shell station-shell">
+    <nav class="topnav">
+      <a href="/" data-i18n="home">Home</a>
+      <a data-event-link id="queueLink" href="/queue.html" data-i18n="queue">Queue</a>
+      <a data-event-link id="leaderboardLink" href="/leaderboard.html" data-i18n="leaderboard">Leaderboard</a>
+      <a data-event-link id="playersLink" href="/players.html" data-i18n="players">Players</a>
+      <a data-event-link href="/operator.html" data-i18n="operator">Operator</a>
+    </nav>
+
+    <section class="station-waiting" id="stationWaiting">
+      <div class="station-hero">
+        <p class="eyebrow" id="stationEventName">Agro Drone Response</p>
+        <h1 data-i18n="waitingForNextPilot">Waiting for next pilot...</h1>
+        <p class="lead" data-i18n="stationLead">The operator will call the next player. This game station starts automatically from the live queue.</p>
+        <div class="qr-section">
+          <img class="qr-code-img" id="stationQr" data-i18n-alt="qrRegistration" alt="Registration QR code">
+          <div>
+            <p class="eyebrow" data-i18n="joinMissionQueue">Join the Mission Queue</p>
+            <h2 data-i18n="scanRegister">Scan to Register</h2>
+            <p class="lead" id="stationRegisterUrl">/register.html</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="station-scoreboard">
+        <article class="panel compact-panel">
+          <p class="eyebrow" data-i18n="currentLeader">Current Leader</p>
+          <div id="stationLeader"><p class="message" data-i18n="loadingLeader">Loading leader...</p></div>
+        </article>
+        <article class="panel compact-panel">
+          <p class="eyebrow" data-i18n="todayTopScores">Today Top Scores</p>
+          <div id="stationTodayScores"><p class="message" data-i18n="loadingScores">Loading scores...</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="game-layout hidden" id="gameLayout">
+      <div class="game-info">
+        <p class="eyebrow" id="playerMeta" data-i18n="waitingForPilot">Waiting for pilot</p>
+        <h1 id="playerName" data-i18n="gameStation">Game Station</h1>
+        <div class="stats">
+          <span><span data-i18n="score">Score</span> <strong id="score">0</strong></span>
+          <span><span data-i18n="time">Time</span> <strong id="time">45</strong>s</span>
+        </div>
+        <button class="button primary start-mission-button" id="startGame" type="button" disabled data-i18n="startMission">Start Mission</button>
+        <p class="hint" data-i18n="gameStationHint">Move with WASD or arrows. Press SPACE on a red hotspot.</p>
+        <div id="gameMessage" class="message"></div>
+      </div>
+      <div class="canvas-wrap"><canvas id="gameCanvas" width="960" height="960"></canvas></div>
+    </section>
+  </main>
+  <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script>
+    AgroApi.setEventLinks();
+  </script>
+  <script src="/js/game.js"></script>
+</body>
+</html>

@@ -1,19 +1,32 @@
 const EVENT_NAME = 'Agrokomplex Nitra';
 const DEFAULT_EVENT_SLUG = 'agrokomplex-nitra';
+const EVENT_SLUG = DEFAULT_EVENT_SLUG;
 const MAPS = ['orchard', 'forest', 'field'];
 const TIMER_SECONDS = 45;
 const GAME_DURATION_SECONDS = TIMER_SECONDS;
 const SPAWN_INTERVAL_MS = 2200;
-const MAX_ACTIVE_TARGETS = 3;
+const MAX_ACTIVE_HOTSPOTS = 3;
+const MAX_ACTIVE_TARGETS = MAX_ACTIVE_HOTSPOTS;
 const GRID_SIZE = 16;
 
+const EVENT_CONFIG = {
+  eventName: EVENT_NAME,
+  eventSlug: EVENT_SLUG,
+  gameDurationSeconds: GAME_DURATION_SECONDS,
+  spawnIntervalMs: SPAWN_INTERVAL_MS,
+  maxActiveHotspots: MAX_ACTIVE_HOTSPOTS,
+};
+
 module.exports = {
+  EVENT_CONFIG,
   EVENT_NAME,
+  EVENT_SLUG,
   DEFAULT_EVENT_SLUG,
   MAPS,
   TIMER_SECONDS,
   GAME_DURATION_SECONDS,
   SPAWN_INTERVAL_MS,
+  MAX_ACTIVE_HOTSPOTS,
   MAX_ACTIVE_TARGETS,
   GRID_SIZE,
 };

@@ -82,6 +82,9 @@
   }
 
   function title(value) {
+    if (window.AgroI18n) {
+      return window.AgroI18n.mapName(value);
+    }
     const text = String(value || '');
     return text.charAt(0).toUpperCase() + text.slice(1);
   }

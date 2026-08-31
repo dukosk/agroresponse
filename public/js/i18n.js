@@ -1,0 +1,501 @@
+(function () {
+  const STORAGE_KEY = 'agroresponse.lang';
+  const DEFAULT_LANG = 'en';
+  const supported = ['en', 'sk', 'cz'];
+
+  const translations = {
+    en: {
+      home: 'Home',
+      register: 'Register',
+      registerPilot: 'Register Pilot',
+      queue: 'Queue',
+      exhibitionQueue: 'Exhibition Queue',
+      leaderboard: 'Leaderboard',
+      players: 'Players',
+      gameStation: 'Game Station',
+      operator: 'Operator',
+      publicQueue: 'Public Queue',
+      event: 'Event',
+      eventLabel: 'Event: {event}',
+      appTitle: 'Agro Drone Response',
+      homeLead: 'Select a mission zone, pilot the response drone, and identify disease hotspots from aerial intelligence.',
+      qrRegistration: 'QR Registration',
+      scanJoinQueue: 'Scan to Join the Mission Queue',
+      joinMissionQueue: 'Join the Mission Queue',
+      scanRegister: 'Scan to Register',
+      mission01: 'Mission 01',
+      mission02: 'Mission 02',
+      mission03: 'Mission 03',
+      orchard: 'Orchard',
+      forest: 'Forest',
+      field: 'Field',
+      orchardDesc: 'Scan tree rows, locate infected canopy zones, and protect high-value fruit production.',
+      forestDesc: 'Survey dense canopy, respond to stress markers, and contain spreading damage quickly.',
+      fieldDesc: 'Follow crop lines, detect disease hotspots, and keep treatment zones precise.',
+      orchardChoiceDesc: 'Tree-row precision mission for canopy disease detection.',
+      forestChoiceDesc: 'Dense canopy survey for early stress and outbreak signals.',
+      fieldChoiceDesc: 'Crop-row scouting for fast hotspot treatment decisions.',
+      name: 'Name',
+      email: 'Email',
+      selectMissionMap: 'Select Mission Map',
+      missionMap: 'Mission Map',
+      selected: 'Selected',
+      joinQueue: 'Join Queue',
+      queueNumber: 'Queue Number',
+      selectedMission: 'Selected Mission',
+      playersBeforeYou: 'Players Before You',
+      registeredForMission: '{name} is registered for the {map} mission.',
+      viewQueue: 'View Queue',
+      registrationFailed: 'Registration failed.',
+      liveMissionQueue: 'Live Mission Queue',
+      waitingPilots: 'Waiting Pilots',
+      todayTopScores: 'Today Top Scores',
+      currentLeader: 'Current Leader',
+      currentlyPlaying: 'Currently Playing',
+      nextPlayer: 'Next Player',
+      ready: 'Ready',
+      callNextPilot: 'Call the next pilot',
+      noOneWaiting: 'No one waiting',
+      newPilotsAfterRegistration: 'New pilots appear after registration',
+      noWaitingPlayers: 'No waiting players.',
+      noLeaderYet: 'No leader yet.',
+      noScoresToday: 'No scores today yet.',
+      loadingLeader: 'Loading leader...',
+      loadingScores: 'Loading scores...',
+      queueLoadFailed: 'Queue could not be loaded.',
+      leaderLoadFailed: 'Leader could not be loaded.',
+      todayScoresLoadFailed: 'Today scores could not be loaded.',
+      mission: 'Mission',
+      diseaseResponse: 'Disease Response',
+      operatorControl: 'Operator Control',
+      callNextPlayer: 'Call Next Player',
+      markCurrentFinished: 'Mark Current Finished',
+      skipCurrentPlayer: 'Skip Current Player',
+      resetQueue: 'Reset Queue',
+      status: 'Status',
+      action: 'Action',
+      none: 'None',
+      noPlayerSelected: 'No player selected.',
+      openGame: 'Open Game',
+      skip: 'Skip',
+      noCurrentPlayerToSkip: 'No current player to skip.',
+      actionFailed: 'Action failed.',
+      missionRankings: 'Mission Rankings',
+      exportDailyTop5: 'Export Daily Top 5',
+      eventTop10: 'Event Top 10',
+      todayTop10: 'Today Top 10',
+      noScoresYet: 'No scores yet.',
+      leaderboardLoadFailed: 'Leaderboard could not be loaded.',
+      exportCsv: 'Export CSV',
+      map: 'Map',
+      score: 'Score',
+      registered: 'Registered',
+      noRegisteredPlayers: 'No registered players.',
+      playersLoadFailed: 'Players could not be loaded.',
+      loadingPlayer: 'Loading player',
+      time: 'Time',
+      start: 'Start',
+      startMission: 'Start Mission',
+      missionRunning: 'Mission Running',
+      missionComplete: 'Mission Complete',
+      playAgain: 'Play Again',
+      gameHint: 'Move with WASD or arrows. Press SPACE on a red target.',
+      gameStationHint: 'Move with WASD or arrows. Press SPACE on a red hotspot.',
+      hotspotTreated: 'Disease hotspot treated.',
+      hotspotMissed: 'Treatment missed hotspot.',
+      savingScore: 'Saving score...',
+      finalScore: 'Final Score',
+      eventRank: 'Event Rank',
+      todayRank: 'Today Rank',
+      hits: 'Hits',
+      misses: 'Misses',
+      accuracy: 'Accuracy',
+      backToQueue: 'Back to Queue',
+      scoreSaveFailed: 'Score could not be saved. Try refreshing after checking the server.',
+      currentPilotReady: 'Current pilot ready on game station.',
+      noCompletedMissions: 'No completed missions yet.',
+      stationDataLoadFailed: 'Station data could not be loaded.',
+      missingPlayerId: 'Missing player id.',
+      playerLoadFailed: 'Player could not be loaded.',
+      waitingForNextPilot: 'Waiting for next pilot...',
+      stationLead: 'The operator will call the next player. This game station starts automatically from the live queue.',
+      waitingForPilot: 'Waiting for pilot',
+      statusWaiting: 'waiting',
+      statusPlaying: 'playing',
+      statusFinished: 'finished',
+      statusSkipped: 'skipped',
+      errorNameRequired: 'Name is required.',
+      errorValidEmailRequired: 'Valid email is required.',
+      errorChooseValidMap: 'Choose a valid map.',
+      errorNoWaitingPlayers: 'No waiting players.',
+      errorFinishOrSkipCurrent: 'Finish or skip the current player first.',
+      errorNoCurrentPlayer: 'No current player.',
+      errorPlayerCannotBeSkipped: 'Player cannot be skipped.',
+      errorPlayerNotFound: 'Player not found.',
+      errorPlayerScoreRequired: 'Player id and score are required.'
+    },
+    sk: {
+      home: 'Domov',
+      register: 'Registrácia',
+      registerPilot: 'Registrovať hráča',
+      queue: 'Poradie',
+      exhibitionQueue: 'Poradie',
+      leaderboard: 'Rebríček',
+      players: 'Hráči',
+      gameStation: 'Herná stanica',
+      operator: 'Operátor',
+      publicQueue: 'Verejné poradie',
+      event: 'Podujatie',
+      eventLabel: 'Podujatie: {event}',
+      appTitle: 'Agro Drone Response',
+      homeLead: 'Vyberte misiu, pilotujte zásahový dron a identifikujte ohniská chorôb z leteckých dát.',
+      qrRegistration: 'QR registrácia',
+      scanJoinQueue: 'Naskenujte a pripojte sa do poradia',
+      joinMissionQueue: 'Pripojiť sa do poradia',
+      scanRegister: 'Naskenujte pre registráciu',
+      mission01: 'Misia 01',
+      mission02: 'Misia 02',
+      mission03: 'Misia 03',
+      orchard: 'Sad',
+      forest: 'Les',
+      field: 'Pole',
+      orchardDesc: 'Skenujte rady stromov, nájdite infikované časti korún a chráňte produkciu ovocia.',
+      forestDesc: 'Preskúmajte hustý porast, reagujte na stresové signály a rýchlo obmedzte šírenie.',
+      fieldDesc: 'Sledujte riadky plodín, detegujte ohniská chorôb a zasahujte presne.',
+      orchardChoiceDesc: 'Presná misia v sade na detekciu chorôb v korunách stromov.',
+      forestChoiceDesc: 'Prieskum hustého porastu na skoré signály stresu a nákazy.',
+      fieldChoiceDesc: 'Monitoring riadkov plodín pre rýchle rozhodnutia o ošetrení.',
+      name: 'Meno',
+      email: 'Email',
+      selectMissionMap: 'Vyberte mapu misie',
+      missionMap: 'Mapa misie',
+      selected: 'Vybrané',
+      joinQueue: 'Pridať do poradia',
+      queueNumber: 'Číslo v poradí',
+      selectedMission: 'Vybraná misia',
+      playersBeforeYou: 'Hráči pred vami',
+      registeredForMission: '{name} je zaregistrovaný na misiu {map}.',
+      viewQueue: 'Zobraziť poradie',
+      registrationFailed: 'Registrácia zlyhala.',
+      liveMissionQueue: 'Živé poradie misií',
+      waitingPilots: 'Čakajúci hráči',
+      todayTopScores: 'Dnešné top skóre',
+      currentLeader: 'Aktuálny líder',
+      currentlyPlaying: 'Práve hrá',
+      nextPlayer: 'Ďalší hráč',
+      ready: 'Pripravené',
+      callNextPilot: 'Zavolajte ďalšieho hráča',
+      noOneWaiting: 'Nikto nečaká',
+      newPilotsAfterRegistration: 'Noví hráči sa zobrazia po registrácii',
+      noWaitingPlayers: 'Žiadni čakajúci hráči.',
+      noLeaderYet: 'Zatiaľ žiadny líder.',
+      noScoresToday: 'Dnes ešte nie sú skóre.',
+      loadingLeader: 'Načítava sa líder...',
+      loadingScores: 'Načítavajú sa skóre...',
+      queueLoadFailed: 'Poradie sa nepodarilo načítať.',
+      leaderLoadFailed: 'Lídra sa nepodarilo načítať.',
+      todayScoresLoadFailed: 'Dnešné skóre sa nepodarilo načítať.',
+      mission: 'Misia',
+      diseaseResponse: 'Zásah proti chorobám',
+      operatorControl: 'Ovládanie operátora',
+      callNextPlayer: 'Zavolať ďalšieho hráča',
+      markCurrentFinished: 'Označiť dokončeného',
+      skipCurrentPlayer: 'Preskočiť aktuálneho hráča',
+      resetQueue: 'Resetovať poradie',
+      status: 'Stav',
+      action: 'Akcia',
+      none: 'Nikto',
+      noPlayerSelected: 'Nie je vybraný žiadny hráč.',
+      openGame: 'Otvoriť hru',
+      skip: 'Preskočiť',
+      noCurrentPlayerToSkip: 'Nie je aktuálny hráč na preskočenie.',
+      actionFailed: 'Akcia zlyhala.',
+      missionRankings: 'Poradie misií',
+      exportDailyTop5: 'Exportovať denný Top 5',
+      eventTop10: 'Top 10 podujatia',
+      todayTop10: 'Dnešný Top 10',
+      noScoresYet: 'Zatiaľ žiadne skóre.',
+      leaderboardLoadFailed: 'Rebríček sa nepodarilo načítať.',
+      exportCsv: 'Export CSV',
+      map: 'Mapa',
+      score: 'Skóre',
+      registered: 'Registrované',
+      noRegisteredPlayers: 'Žiadni registrovaní hráči.',
+      playersLoadFailed: 'Hráčov sa nepodarilo načítať.',
+      loadingPlayer: 'Načítava sa hráč',
+      time: 'Čas',
+      start: 'Štart',
+      startMission: 'Spustiť misiu',
+      missionRunning: 'Misia prebieha',
+      missionComplete: 'Misia dokončená',
+      playAgain: 'Hrať znova',
+      gameHint: 'Pohyb pomocou WASD alebo šípok. Stlačte SPACE na červenom cieli.',
+      gameStationHint: 'Pohyb pomocou WASD alebo šípok. Stlačte SPACE na červenom ohnisku.',
+      hotspotTreated: 'Ohnisko choroby ošetrené.',
+      hotspotMissed: 'Ošetrenie minulo ohnisko.',
+      savingScore: 'Ukladá sa skóre...',
+      finalScore: 'Finálne skóre',
+      eventRank: 'Poradie na podujatí',
+      todayRank: 'Dnešné poradie',
+      hits: 'Zásahy',
+      misses: 'Minutia',
+      accuracy: 'Presnosť',
+      backToQueue: 'Späť na poradie',
+      scoreSaveFailed: 'Skóre sa nepodarilo uložiť. Skontrolujte server a obnovte stránku.',
+      currentPilotReady: 'Aktuálny hráč je pripravený na hernej stanici.',
+      noCompletedMissions: 'Zatiaľ žiadne dokončené misie.',
+      stationDataLoadFailed: 'Dáta hernej stanice sa nepodarilo načítať.',
+      missingPlayerId: 'Chýba ID hráča.',
+      playerLoadFailed: 'Hráča sa nepodarilo načítať.',
+      waitingForNextPilot: 'Čaká sa na ďalšieho hráča...',
+      stationLead: 'Operátor zavolá ďalšieho hráča. Herná stanica sa spustí automaticky zo živého poradia.',
+      waitingForPilot: 'Čaká sa na hráča',
+      statusWaiting: 'čaká',
+      statusPlaying: 'hrá',
+      statusFinished: 'dokončené',
+      statusSkipped: 'preskočené',
+      errorNameRequired: 'Meno je povinné.',
+      errorValidEmailRequired: 'Vyžaduje sa platný email.',
+      errorChooseValidMap: 'Vyberte platnú mapu.',
+      errorNoWaitingPlayers: 'Žiadni čakajúci hráči.',
+      errorFinishOrSkipCurrent: 'Najprv dokončite alebo preskočte aktuálneho hráča.',
+      errorNoCurrentPlayer: 'Nie je aktuálny hráč.',
+      errorPlayerCannotBeSkipped: 'Hráča nemožno preskočiť.',
+      errorPlayerNotFound: 'Hráč sa nenašiel.',
+      errorPlayerScoreRequired: 'ID hráča a skóre sú povinné.'
+    },
+    cz: {
+      home: 'Domů',
+      register: 'Registrace',
+      registerPilot: 'Registrovat hráče',
+      queue: 'Pořadí',
+      exhibitionQueue: 'Pořadí',
+      leaderboard: 'Žebříček',
+      players: 'Hráči',
+      gameStation: 'Herní stanice',
+      operator: 'Operátor',
+      publicQueue: 'Veřejné pořadí',
+      event: 'Akce',
+      eventLabel: 'Akce: {event}',
+      appTitle: 'Agro Drone Response',
+      homeLead: 'Vyberte misi, pilotujte zásahový dron a identifikujte ohniska chorob z leteckých dat.',
+      qrRegistration: 'QR registrace',
+      scanJoinQueue: 'Naskenujte a připojte se do pořadí',
+      joinMissionQueue: 'Připojit se do pořadí',
+      scanRegister: 'Naskenujte pro registraci',
+      mission01: 'Mise 01',
+      mission02: 'Mise 02',
+      mission03: 'Mise 03',
+      orchard: 'Sad',
+      forest: 'Les',
+      field: 'Pole',
+      orchardDesc: 'Skenujte řady stromů, najděte infikované části korun a chraňte produkci ovoce.',
+      forestDesc: 'Prozkoumejte hustý porost, reagujte na stresové signály a rychle omezte šíření.',
+      fieldDesc: 'Sledujte řádky plodin, detekujte ohniska chorob a zasahujte přesně.',
+      orchardChoiceDesc: 'Přesná mise v sadu pro detekci chorob v korunách stromů.',
+      forestChoiceDesc: 'Průzkum hustého porostu pro časné signály stresu a nákazy.',
+      fieldChoiceDesc: 'Monitoring řádků plodin pro rychlá rozhodnutí o ošetření.',
+      name: 'Jméno',
+      email: 'Email',
+      selectMissionMap: 'Vyberte mapu mise',
+      missionMap: 'Mapa mise',
+      selected: 'Vybráno',
+      joinQueue: 'Přidat do pořadí',
+      queueNumber: 'Číslo v pořadí',
+      selectedMission: 'Vybraná mise',
+      playersBeforeYou: 'Hráči před vámi',
+      registeredForMission: '{name} je zaregistrován na misi {map}.',
+      viewQueue: 'Zobrazit pořadí',
+      registrationFailed: 'Registrace selhala.',
+      liveMissionQueue: 'Živé pořadí misí',
+      waitingPilots: 'Čekající hráči',
+      todayTopScores: 'Dnešní top skóre',
+      currentLeader: 'Aktuální lídr',
+      currentlyPlaying: 'Právě hraje',
+      nextPlayer: 'Další hráč',
+      ready: 'Připraveno',
+      callNextPilot: 'Zavolejte dalšího hráče',
+      noOneWaiting: 'Nikdo nečeká',
+      newPilotsAfterRegistration: 'Noví hráči se zobrazí po registraci',
+      noWaitingPlayers: 'Žádní čekající hráči.',
+      noLeaderYet: 'Zatím žádný lídr.',
+      noScoresToday: 'Dnes ještě nejsou skóre.',
+      loadingLeader: 'Načítá se lídr...',
+      loadingScores: 'Načítají se skóre...',
+      queueLoadFailed: 'Pořadí se nepodařilo načíst.',
+      leaderLoadFailed: 'Lídra se nepodařilo načíst.',
+      todayScoresLoadFailed: 'Dnešní skóre se nepodařilo načíst.',
+      mission: 'Mise',
+      diseaseResponse: 'Zásah proti chorobám',
+      operatorControl: 'Ovládání operátora',
+      callNextPlayer: 'Zavolat dalšího hráče',
+      markCurrentFinished: 'Označit dokončeného',
+      skipCurrentPlayer: 'Přeskočit aktuálního hráče',
+      resetQueue: 'Resetovat pořadí',
+      status: 'Stav',
+      action: 'Akce',
+      none: 'Nikdo',
+      noPlayerSelected: 'Není vybrán žádný hráč.',
+      openGame: 'Otevřít hru',
+      skip: 'Přeskočit',
+      noCurrentPlayerToSkip: 'Není aktuální hráč k přeskočení.',
+      actionFailed: 'Akce selhala.',
+      missionRankings: 'Pořadí misí',
+      exportDailyTop5: 'Exportovat denní Top 5',
+      eventTop10: 'Top 10 akce',
+      todayTop10: 'Dnešní Top 10',
+      noScoresYet: 'Zatím žádné skóre.',
+      leaderboardLoadFailed: 'Žebříček se nepodařilo načíst.',
+      exportCsv: 'Export CSV',
+      map: 'Mapa',
+      score: 'Skóre',
+      registered: 'Registrováno',
+      noRegisteredPlayers: 'Žádní registrovaní hráči.',
+      playersLoadFailed: 'Hráče se nepodařilo načíst.',
+      loadingPlayer: 'Načítá se hráč',
+      time: 'Čas',
+      start: 'Start',
+      startMission: 'Spustit misi',
+      missionRunning: 'Mise probíhá',
+      missionComplete: 'Mise dokončena',
+      playAgain: 'Hrát znovu',
+      gameHint: 'Pohyb pomocí WASD nebo šipek. Stiskněte SPACE na červeném cíli.',
+      gameStationHint: 'Pohyb pomocí WASD nebo šipek. Stiskněte SPACE na červeném ohnisku.',
+      hotspotTreated: 'Ohnisko choroby ošetřeno.',
+      hotspotMissed: 'Ošetření minulo ohnisko.',
+      savingScore: 'Ukládá se skóre...',
+      finalScore: 'Konečné skóre',
+      eventRank: 'Pořadí na akci',
+      todayRank: 'Dnešní pořadí',
+      hits: 'Zásahy',
+      misses: 'Minutí',
+      accuracy: 'Přesnost',
+      backToQueue: 'Zpět na pořadí',
+      scoreSaveFailed: 'Skóre se nepodařilo uložit. Zkontrolujte server a obnovte stránku.',
+      currentPilotReady: 'Aktuální hráč je připraven na herní stanici.',
+      noCompletedMissions: 'Zatím žádné dokončené mise.',
+      stationDataLoadFailed: 'Data herní stanice se nepodařilo načíst.',
+      missingPlayerId: 'Chybí ID hráče.',
+      playerLoadFailed: 'Hráče se nepodařilo načíst.',
+      waitingForNextPilot: 'Čeká se na dalšího hráče...',
+      stationLead: 'Operátor zavolá dalšího hráče. Herní stanice se spustí automaticky ze živého pořadí.',
+      waitingForPilot: 'Čeká se na hráče',
+      statusWaiting: 'čeká',
+      statusPlaying: 'hraje',
+      statusFinished: 'dokončeno',
+      statusSkipped: 'přeskočeno',
+      errorNameRequired: 'Jméno je povinné.',
+      errorValidEmailRequired: 'Je vyžadován platný email.',
+      errorChooseValidMap: 'Vyberte platnou mapu.',
+      errorNoWaitingPlayers: 'Žádní čekající hráči.',
+      errorFinishOrSkipCurrent: 'Nejprve dokončete nebo přeskočte aktuálního hráče.',
+      errorNoCurrentPlayer: 'Není aktuální hráč.',
+      errorPlayerCannotBeSkipped: 'Hráče nelze přeskočit.',
+      errorPlayerNotFound: 'Hráč nebyl nalezen.',
+      errorPlayerScoreRequired: 'ID hráče a skóre jsou povinné.'
+    }
+  };
+
+  function language() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return supported.includes(stored) ? stored : DEFAULT_LANG;
+  }
+
+  function t(key, vars) {
+    const lang = language();
+    let text = (translations[lang] && translations[lang][key]) || translations.en[key] || key;
+    Object.keys(vars || {}).forEach(function (name) {
+      text = text.replace(new RegExp('\\{' + name + '\\}', 'g'), vars[name]);
+    });
+    return text;
+  }
+
+  function mapName(map) {
+    return t(String(map || '').toLowerCase());
+  }
+
+  function status(status) {
+    return t('status' + String(status || '').charAt(0).toUpperCase() + String(status || '').slice(1));
+  }
+
+  function apiError(error, fallbackKey) {
+    const message = error && error.message;
+    const keys = {
+      'Name is required.': 'errorNameRequired',
+      'Valid email is required.': 'errorValidEmailRequired',
+      'Choose a valid map.': 'errorChooseValidMap',
+      'No waiting players.': 'errorNoWaitingPlayers',
+      'Finish or skip the current player first.': 'errorFinishOrSkipCurrent',
+      'No current player.': 'errorNoCurrentPlayer',
+      'Player cannot be skipped.': 'errorPlayerCannotBeSkipped',
+      'Player not found.': 'errorPlayerNotFound',
+      'Player id and score are required.': 'errorPlayerScoreRequired'
+    };
+    if (message && keys[message]) return t(keys[message]);
+    return fallbackKey ? t(fallbackKey) : (message || t('actionFailed'));
+  }
+
+  function translatePage() {
+    document.documentElement.lang = language();
+    document.querySelectorAll('[data-i18n]').forEach(function (node) {
+      node.textContent = t(node.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (node) {
+      node.innerHTML = t(node.getAttribute('data-i18n-html'));
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(function (node) {
+      node.title = t(node.getAttribute('data-i18n-title'));
+    });
+    document.querySelectorAll('[data-i18n-alt]').forEach(function (node) {
+      node.alt = t(node.getAttribute('data-i18n-alt'));
+    });
+  }
+
+  function setLanguage(lang) {
+    if (!supported.includes(lang)) return;
+    localStorage.setItem(STORAGE_KEY, lang);
+    translatePage();
+    renderSwitcher();
+    window.dispatchEvent(new CustomEvent('agro:languagechange', { detail: { language: lang } }));
+  }
+
+  function renderSwitcher() {
+    let switcher = document.querySelector('.language-switcher');
+    if (!switcher) {
+      switcher = document.createElement('div');
+      switcher.className = 'language-switcher';
+      document.body.appendChild(switcher);
+    }
+    const current = language();
+    switcher.innerHTML = supported.map(function (lang) {
+      return '<button type="button" class="' + (lang === current ? 'active' : '') +
+        '" data-lang="' + lang + '">' + lang.toUpperCase() + '</button>';
+    }).join('');
+  }
+
+  function init() {
+    translatePage();
+    renderSwitcher();
+    document.addEventListener('click', function (event) {
+      const button = event.target.closest('.language-switcher [data-lang]');
+      if (!button) return;
+      setLanguage(button.dataset.lang);
+    });
+  }
+
+  window.AgroI18n = {
+    t,
+    language,
+    setLanguage,
+    translatePage,
+    mapName,
+    status,
+    apiError,
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();

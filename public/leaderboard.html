@@ -9,28 +9,28 @@
 <body>
   <main class="shell">
     <nav class="topnav">
-      <a href="/">Home</a>
-      <a data-event-link href="/register.html">Register</a>
-      <a data-event-link href="/queue.html">Queue</a>
-      <a data-event-link href="/players.html">Players</a>
+      <a href="/" data-i18n="home">Home</a>
+      <a data-event-link data-i18n="register" href="/register.html">Register</a>
+      <a data-event-link data-i18n="queue" href="/queue.html">Queue</a>
+      <a data-event-link data-i18n="players" href="/players.html">Players</a>
     </nav>
 
     <section class="panel">
       <div class="section-head">
         <div>
           <p class="eyebrow" id="eventLabel">Event</p>
-          <h1>Mission Rankings</h1>
+          <h1 data-i18n="missionRankings">Mission Rankings</h1>
         </div>
-        <a class="button primary" id="exportTodayTop5" href="/api/leaderboard/today/export">Export Daily Top 5</a>
+        <a class="button primary" id="exportTodayTop5" data-i18n="exportDailyTop5" href="/api/leaderboard/today/export">Export Daily Top 5</a>
       </div>
 
       <div class="leaderboards">
         <div>
-          <h2>Event Top 10</h2>
+          <h2 data-i18n="eventTop10">Event Top 10</h2>
           <div class="ranking-list" id="eventRows"></div>
         </div>
         <div>
-          <h2>Today Top 10</h2>
+          <h2 data-i18n="todayTop10">Today Top 10</h2>
           <div class="ranking-list" id="todayRows"></div>
         </div>
       </div>
@@ -38,22 +38,33 @@
   </main>
 
   <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
   <script>
     const eventSlug = AgroApi.eventSlug();
+    let lastEventScores = null;
+    let lastTodayScores = null;
     AgroApi.setEventLinks();
-    document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+    function renderLeaderboardEventLabel() {
+      document.getElementById('eventLabel').textContent = AgroI18n.t('eventLabel', { event: eventSlug });
+    }
+    renderLeaderboardEventLabel();
     document.getElementById('exportTodayTop5').href = '/api/leaderboard/today/export?event=' + encodeURIComponent(eventSlug);
 
     function rows(scores) {
       const top = scores.slice(0, 10);
-      if (!top.length) return '<div class="empty-state">No scores yet.</div>';
+      if (!top.length) return '<div class="empty-state">' + AgroI18n.t('noScoresYet') + '</div>';
 
       return top.map(function (row, index) {
         const medal = index === 0 ? ' gold' : index === 1 ? ' silver' : index === 2 ? ' bronze' : '';
         return '<div class="rank-row' + medal + '"><span class="rank-number">#' + (index + 1) + '</span>' +
           '<strong>' + AgroApi.escapeHtml(row.name) + '<br><span class="message">' +
-          AgroApi.title(row.selected_map) + ' Mission</span></strong><span class="rank-score">' + row.score + '</span></div>';
+          AgroApi.title(row.selected_map) + ' ' + AgroI18n.t('mission') + '</span></strong><span class="rank-score">' + row.score + '</span></div>';
       }).join('');
+    }
+
+    function renderLeaderboardRows() {
+      if (lastEventScores) document.getElementById('eventRows').innerHTML = rows(lastEventScores);
+      if (lastTodayScores) document.getElementById('todayRows').innerHTML = rows(lastTodayScores);
     }
 
     Promise.all([
@@ -61,14 +72,20 @@
       AgroApi.get('/api/leaderboard/today?event=' + encodeURIComponent(eventSlug)),
     ])
       .then(function (results) {
-        document.getElementById('eventRows').innerHTML = rows(results[0].event || []);
-        document.getElementById('todayRows').innerHTML = rows(results[1].today || []);
+        lastEventScores = results[0].event || [];
+        lastTodayScores = results[1].today || [];
+        renderLeaderboardRows();
       })
       .catch(function (error) {
         AgroApi.logError('Leaderboard API failed', error);
-        document.getElementById('eventRows').innerHTML = '<div class="empty-state">Leaderboard could not be loaded.</div>';
-        document.getElementById('todayRows').innerHTML = '<div class="empty-state">Today scores could not be loaded.</div>';
+        document.getElementById('eventRows').innerHTML = '<div class="empty-state">' + AgroI18n.t('leaderboardLoadFailed') + '</div>';
+        document.getElementById('todayRows').innerHTML = '<div class="empty-state">' + AgroI18n.t('todayScoresLoadFailed') + '</div>';
       });
+
+    window.addEventListener('agro:languagechange', function () {
+      renderLeaderboardEventLabel();
+      renderLeaderboardRows();
+    });
   </script>
 </body>
 </html>

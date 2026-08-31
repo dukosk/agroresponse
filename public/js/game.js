@@ -7,6 +7,19 @@
   const timeEl = document.getElementById('time');
   const startButton = document.getElementById('startGame');
   const messageEl = document.getElementById('gameMessage');
+  const playerNameEl = document.getElementById('playerName');
+  const playerMetaEl = document.getElementById('playerMeta');
+  const queueLink = document.getElementById('queueLink');
+  const leaderboardLink = document.getElementById('leaderboardLink');
+  const playersLink = document.getElementById('playersLink');
+  const gameLayout = document.getElementById('gameLayout');
+  const stationWaiting = document.getElementById('stationWaiting');
+  const stationEventName = document.getElementById('stationEventName');
+  const stationQr = document.getElementById('stationQr');
+  const stationRegisterUrl = document.getElementById('stationRegisterUrl');
+  const stationLeader = document.getElementById('stationLeader');
+  const stationTodayScores = document.getElementById('stationTodayScores');
+  const stationMode = document.body.dataset.gameMode === 'station';
 
   const keys = new Set();
 
@@ -23,6 +36,8 @@
   let drone = { x: 7, y: 7 };
   let targets = [];
   let score = 0;
+  let hits = 0;
+  let misses = 0;
   let timeLeft = timerSeconds;
   let running = false;
   let lastMove = 0;
@@ -32,6 +47,39 @@
   let scoreAnimations = [];
   let droneAngle = 0;
   let actionPulseAt = 0;
+  let stationPollId = null;
+  let activeStationPlayerId = null;
+  let activePlayer = null;
+  let lastStationWaitingData = null;
+  let lastResult = null;
+  let lastMessageKey = null;
+
+  function t(key, vars) {
+    return window.AgroI18n ? AgroI18n.t(key, vars) : key;
+  }
+
+  function missionLabel(map) {
+    return AgroApi.title(map) + ' ' + t('mission');
+  }
+
+  function playerMeta(player) {
+    return t('queue') + ' #' + player.queue_number + ' · ' + missionLabel(player.selected_map) + ' · ' + t('diseaseResponse');
+  }
+
+  function renderStartButtonText() {
+    if (running) {
+      startButton.textContent = t('missionRunning');
+    } else if (lastResult) {
+      startButton.textContent = stationMode ? t('missionComplete') : t('playAgain');
+    } else {
+      startButton.textContent = stationMode ? t('startMission') : t('start');
+    }
+  }
+
+  function setMessage(key) {
+    lastMessageKey = key || null;
+    messageEl.textContent = key ? t(key) : '';
+  }
 
   function randomTarget() {
     let next = { x: 0, y: 0 };
@@ -339,13 +387,15 @@
     });
 
     if (hitIndex !== -1) {
+      hits += 1;
       updateScore(100);
       targets.splice(hitIndex, 1);
       spawnTarget();
-      messageEl.textContent = 'Disease hotspot treated.';
+      setMessage('hotspotTreated');
     } else {
+      misses += 1;
       updateScore(-50);
-      messageEl.textContent = 'Treatment missed hotspot.';
+      setMessage('hotspotMissed');
     }
   }
 
@@ -359,16 +409,20 @@
     if (running || !registrationId) return;
 
     score = 0;
+    hits = 0;
+    misses = 0;
     timeLeft = timerSeconds;
     saved = false;
+    lastResult = null;
     drone = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
     targets = [];
     spawnTarget();
     scoreEl.textContent = score;
     timeEl.textContent = timeLeft;
-    messageEl.textContent = '';
+    setMessage();
     startButton.disabled = true;
     running = true;
+    renderStartButtonText();
 
     intervalId = window.setInterval(function () {
       timeLeft -= 1;
@@ -389,23 +443,50 @@
     window.clearInterval(intervalId);
     window.clearInterval(spawnTimerId);
     startButton.disabled = false;
-    startButton.textContent = 'Play Again';
-    messageEl.textContent = 'Saving score...';
+    renderStartButtonText();
+    setMessage('savingScore');
 
     AgroApi.post('/api/score', { registration_id: registrationId, score: score })
       .then(function (data) {
         if (!data.ok) throw new Error(data.error || 'Save failed');
         const eventRank = data.ranks && data.ranks.event ? data.ranks.event : '-';
         const todayRank = data.ranks && data.ranks.today ? data.ranks.today : '-';
-        messageEl.innerHTML = '<div class="final-result"><span>Final Score</span><strong>' + score +
-          '</strong><span>Event Rank</span><strong>#' + eventRank +
-          '</strong><span>Today Rank</span><strong>#' + todayRank +
-          '</strong></div><a href="/leaderboard.html?event=' + encodeURIComponent(data.eventSlug) +
-          '">View leaderboard</a>.';
+        const attempts = hits + misses;
+        const accuracy = attempts ? Math.round((hits / attempts) * 100) : 0;
+        lastResult = {
+          eventSlug: data.eventSlug,
+          score: score,
+          eventRank: eventRank,
+          todayRank: todayRank,
+          hits: hits,
+          misses: misses,
+          accuracy: accuracy,
+        };
+        renderResult();
+        if (stationMode) {
+          startButton.disabled = true;
+          window.setTimeout(resetStationWaiting, 10000);
+        }
       })
-      .catch(function () {
-        messageEl.textContent = 'Score could not be saved. Try refreshing after checking the server.';
+      .catch(function (error) {
+        AgroApi.logError('Score save failed', error);
+        setMessage('scoreSaveFailed');
       });
+  }
+
+  function renderResult() {
+    if (!lastResult) return;
+    messageEl.innerHTML = '<div class="final-result">' +
+      '<div><span>' + t('finalScore') + '</span><strong>' + lastResult.score + '</strong></div>' +
+      '<div><span>' + t('eventRank') + '</span><strong>#' + lastResult.eventRank + '</strong></div>' +
+      '<div><span>' + t('todayRank') + '</span><strong>#' + lastResult.todayRank + '</strong></div>' +
+      '<div><span>' + t('hits') + '</span><strong>' + lastResult.hits + '</strong></div>' +
+      '<div><span>' + t('misses') + '</span><strong>' + lastResult.misses + '</strong></div>' +
+      '<div><span>' + t('accuracy') + '</span><strong>' + lastResult.accuracy + '%</strong></div>' +
+      '</div><div class="actions"><a class="button primary" href="/queue.html?event=' +
+      encodeURIComponent(lastResult.eventSlug) + '">' + t('backToQueue') + '</a><a class="button" href="/">' +
+      t('home') + '</a><a class="button" href="/leaderboard.html?event=' +
+      encodeURIComponent(lastResult.eventSlug) + '">' + t('leaderboard') + '</a></div>';
   }
 
   window.addEventListener('keydown', function (event) {
@@ -425,12 +506,152 @@
     keys.delete(event.code);
   });
 
+  function applyConfig(config) {
+    gridSize = config.gridSize;
+    timerSeconds = config.gameDurationSeconds || config.timerSeconds;
+    spawnIntervalMs = config.spawnIntervalMs || spawnIntervalMs;
+    maxActiveTargets = config.maxActiveHotspots || config.maxActiveTargets || maxActiveTargets;
+    cellSize = canvas.width / gridSize;
+    timeLeft = timerSeconds;
+    timeEl.textContent = timeLeft;
+    if (stationEventName && config.eventConfig) {
+      stationEventName.textContent = config.eventConfig.eventName;
+    }
+  }
+
+  function updateEventLinks() {
+    if (queueLink) queueLink.href = '/queue.html?event=' + encodeURIComponent(eventSlug);
+    if (leaderboardLink) leaderboardLink.href = '/leaderboard.html?event=' + encodeURIComponent(eventSlug);
+    if (playersLink) playersLink.href = '/players.html?event=' + encodeURIComponent(eventSlug);
+  }
+
+  function setPlayer(player) {
+    activePlayer = player;
+    registrationId = player.id;
+    activeStationPlayerId = player.id;
+    eventSlug = player.event_slug;
+    selectedMap = player.selected_map;
+    drone = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
+    targets = [];
+    score = 0;
+    hits = 0;
+    misses = 0;
+    saved = false;
+    lastResult = null;
+    timeLeft = timerSeconds;
+    scoreEl.textContent = score;
+    timeEl.textContent = timeLeft;
+    spawnTarget();
+    playerNameEl.removeAttribute('data-i18n');
+    playerNameEl.textContent = player.name;
+    playerMetaEl.textContent = playerMeta(player);
+    renderStartButtonText();
+    startButton.disabled = false;
+    setMessage(stationMode ? 'currentPilotReady' : null);
+    updateEventLinks();
+    loadBackground(selectedMap);
+    if (stationMode) {
+      if (stationWaiting) stationWaiting.classList.add('hidden');
+      if (gameLayout) gameLayout.classList.remove('hidden');
+    }
+    draw();
+  }
+
+  function renderStationWaiting(data) {
+    lastStationWaitingData = data || lastStationWaitingData;
+    const registerUrl = window.location.origin + '/register.html?event=' + encodeURIComponent(eventSlug);
+    if (stationRegisterUrl) stationRegisterUrl.textContent = registerUrl;
+    if (stationQr) stationQr.src = '/api/register-qr.svg?event=' + encodeURIComponent(eventSlug);
+
+    const leader = data && data.leader && data.leader[0];
+    if (stationLeader) {
+      stationLeader.innerHTML = leader
+        ? '<div class="leader-card"><strong>' + AgroApi.escapeHtml(leader.name) + '</strong><span>' + leader.score + '</span><small>' + missionLabel(leader.selected_map) + '</small></div>'
+        : '<p class="message">' + t('noCompletedMissions') + '</p>';
+    }
+
+    const today = data && data.today ? data.today : [];
+    if (stationTodayScores) {
+      stationTodayScores.innerHTML = today.length
+        ? today.slice(0, 5).map(function (row, index) {
+          return '<div class="preview-row"><span class="rank-number">#' + (index + 1) + '</span><strong>' +
+            AgroApi.escapeHtml(row.name) + '</strong><span>' + row.score + '</span></div>';
+        }).join('')
+        : '<p class="message">' + t('noScoresToday') + '</p>';
+    }
+  }
+
+  function showStationWaiting(data) {
+    registrationId = null;
+    activeStationPlayerId = null;
+    running = false;
+    saved = false;
+    targets = [];
+    keys.clear();
+    window.clearInterval(intervalId);
+    window.clearInterval(spawnTimerId);
+    startButton.disabled = true;
+    if (gameLayout) gameLayout.classList.add('hidden');
+    if (stationWaiting) stationWaiting.classList.remove('hidden');
+    renderStationWaiting(data);
+    draw();
+  }
+
+  function resetStationWaiting() {
+    showStationWaiting();
+    pollStation();
+  }
+
+  function pollStation() {
+    if (!stationMode || running) return;
+
+    Promise.all([
+      AgroApi.config(),
+      AgroApi.get('/api/queue/current?event=' + encodeURIComponent(eventSlug)),
+      AgroApi.get('/api/leaderboard?event=' + encodeURIComponent(eventSlug)),
+    ])
+      .then(function (results) {
+        const config = results[0];
+        const current = results[1].current;
+        const leaderboard = results[2];
+        applyConfig(config);
+        eventSlug = results[1].eventSlug || eventSlug;
+
+        if (!current) {
+          if (!registrationId) {
+            showStationWaiting({
+              leader: leaderboard.event,
+              today: leaderboard.today,
+            });
+          }
+          return;
+        }
+
+        if (current.id !== activeStationPlayerId) {
+          setPlayer(current);
+        }
+      })
+      .catch(function (error) {
+        AgroApi.logError('Game station poll failed', error);
+        if (stationWaiting) stationWaiting.classList.remove('hidden');
+        if (stationTodayScores) stationTodayScores.innerHTML = '<p class="message">' + t('stationDataLoadFailed') + '</p>';
+      });
+  }
+
   function loadPlayer() {
+    if (stationMode) {
+      if (gameLayout) gameLayout.classList.add('hidden');
+      if (stationWaiting) stationWaiting.classList.remove('hidden');
+      pollStation();
+      stationPollId = window.setInterval(pollStation, 2000);
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const id = Number.parseInt(params.get('id'), 10);
 
     if (!Number.isInteger(id)) {
-      messageEl.textContent = 'Missing player id.';
+      setMessage('missingPlayerId');
       draw();
       return;
     }
@@ -439,30 +660,12 @@
       .then(function (results) {
         const config = results[0];
         const player = results[1].player;
-        gridSize = config.gridSize;
-        timerSeconds = config.gameDurationSeconds || config.timerSeconds;
-        spawnIntervalMs = config.spawnIntervalMs || spawnIntervalMs;
-        maxActiveTargets = config.maxActiveTargets || maxActiveTargets;
-        cellSize = canvas.width / gridSize;
-        registrationId = player.id;
-        eventSlug = player.event_slug;
-        selectedMap = player.selected_map;
-        drone = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
-        targets = [];
-        spawnTarget();
-        timeLeft = timerSeconds;
-        timeEl.textContent = timeLeft;
-        document.getElementById('playerName').textContent = player.name;
-        document.getElementById('playerMeta').textContent = 'Queue #' + player.queue_number + ' · ' + AgroApi.title(player.selected_map) + ' Disease Response';
-        document.getElementById('queueLink').href = '/queue.html?event=' + encodeURIComponent(eventSlug);
-        document.getElementById('leaderboardLink').href = '/leaderboard.html?event=' + encodeURIComponent(eventSlug);
-        document.getElementById('playersLink').href = '/players.html?event=' + encodeURIComponent(eventSlug);
-        loadBackground(selectedMap);
-        startButton.disabled = false;
-        draw();
+        applyConfig(config);
+        setPlayer(player);
       })
-      .catch(function () {
-        messageEl.textContent = 'Player could not be loaded.';
+      .catch(function (error) {
+        AgroApi.logError('Game player load failed', error);
+        setMessage('playerLoadFailed');
         draw();
       });
   }
@@ -481,4 +684,22 @@
   startButton.addEventListener('click', startGame);
   loadPlayer();
   requestAnimationFrame(loop);
+  window.addEventListener('beforeunload', function () {
+    window.clearInterval(stationPollId);
+  });
+  window.addEventListener('agro:languagechange', function () {
+    if (activePlayer) {
+      playerNameEl.textContent = activePlayer.name;
+      playerMetaEl.textContent = playerMeta(activePlayer);
+    }
+    renderStartButtonText();
+    if (lastResult) {
+      renderResult();
+    } else if (lastMessageKey) {
+      setMessage(lastMessageKey);
+    }
+    if (stationWaiting && !stationWaiting.classList.contains('hidden')) {
+      renderStationWaiting(lastStationWaitingData);
+    }
+  });
 })();

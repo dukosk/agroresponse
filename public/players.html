@@ -9,32 +9,32 @@
 <body>
   <main class="shell">
     <nav class="topnav">
-      <a href="/">Home</a>
-      <a data-event-link href="/register.html">Register</a>
-      <a data-event-link href="/queue.html">Queue</a>
-      <a data-event-link href="/leaderboard.html">Leaderboard</a>
+      <a href="/" data-i18n="home">Home</a>
+      <a data-event-link data-i18n="register" href="/register.html">Register</a>
+      <a data-event-link data-i18n="queue" href="/queue.html">Queue</a>
+      <a data-event-link data-i18n="leaderboard" href="/leaderboard.html">Leaderboard</a>
     </nav>
 
     <section class="panel">
       <div class="section-head">
         <div>
           <p class="eyebrow" id="eventLabel">Event</p>
-          <h1>Players</h1>
+          <h1 data-i18n="players">Players</h1>
         </div>
-        <a class="button primary" id="exportCsv" href="/api/players.csv">Export CSV</a>
+        <a class="button primary" id="exportCsv" data-i18n="exportCsv" href="/api/players.csv">Export CSV</a>
       </div>
 
       <div class="table-wrap admin-table">
         <table>
           <thead>
             <tr>
-              <th>Queue</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Map</th>
-              <th>Status</th>
-              <th>Score</th>
-              <th>Registered</th>
+              <th data-i18n="queue">Queue</th>
+              <th data-i18n="name">Name</th>
+              <th data-i18n="email">Email</th>
+              <th data-i18n="map">Map</th>
+              <th data-i18n="status">Status</th>
+              <th data-i18n="score">Score</th>
+              <th data-i18n="registered">Registered</th>
             </tr>
           </thead>
           <tbody id="playersRows"></tbody>
@@ -44,36 +44,51 @@
   </main>
 
   <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
   <script>
     const eventSlug = AgroApi.eventSlug();
     const rowsEl = document.getElementById('playersRows');
+    let lastPlayers = null;
 
     AgroApi.setEventLinks();
-    document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+    function renderPlayersEventLabel() {
+      document.getElementById('eventLabel').textContent = AgroI18n.t('eventLabel', { event: eventSlug });
+    }
+    renderPlayersEventLabel();
     document.getElementById('exportCsv').href = '/api/players/export?event=' + encodeURIComponent(eventSlug);
 
     function statusBadge(status) {
-      return '<span class="status-badge status-' + AgroApi.escapeHtml(status) + '">' + AgroApi.escapeHtml(status) + '</span>';
+      return '<span class="status-badge status-' + AgroApi.escapeHtml(status) + '">' + AgroI18n.status(status) + '</span>';
+    }
+
+    function renderPlayers(players) {
+      lastPlayers = players;
+      if (!players.length) {
+        rowsEl.innerHTML = '<tr><td colspan="7">' + AgroI18n.t('noRegisteredPlayers') + '</td></tr>';
+        return;
+      }
+
+      rowsEl.innerHTML = players.map(function (player) {
+        return '<tr><td>#' + player.queue_number + '</td><td>' + AgroApi.escapeHtml(player.name) +
+          '</td><td>' + AgroApi.escapeHtml(player.email) + '</td><td>' + AgroApi.title(player.selected_map) +
+          '</td><td>' + statusBadge(player.status) + '</td><td>' + (player.score == null ? '-' : player.score) +
+          '</td><td>' + AgroApi.escapeHtml(player.registered_at || player.created_at) + '</td></tr>';
+      }).join('');
     }
 
     AgroApi.get('/api/players?event=' + encodeURIComponent(eventSlug))
       .then(function (data) {
-        if (!data.players.length) {
-          rowsEl.innerHTML = '<tr><td colspan="7">No registered players.</td></tr>';
-          return;
-        }
-
-        rowsEl.innerHTML = data.players.map(function (player) {
-          return '<tr><td>#' + player.queue_number + '</td><td>' + AgroApi.escapeHtml(player.name) +
-            '</td><td>' + AgroApi.escapeHtml(player.email) + '</td><td>' + AgroApi.title(player.selected_map) +
-            '</td><td>' + statusBadge(player.status) + '</td><td>' + (player.score == null ? '-' : player.score) +
-            '</td><td>' + AgroApi.escapeHtml(player.registered_at || player.created_at) + '</td></tr>';
-        }).join('');
+        renderPlayers(data.players || []);
       })
       .catch(function (error) {
         AgroApi.logError('Players API failed', error);
-        rowsEl.innerHTML = '<tr><td colspan="7">Players could not be loaded.</td></tr>';
+        rowsEl.innerHTML = '<tr><td colspan="7">' + AgroI18n.t('playersLoadFailed') + '</td></tr>';
       });
+
+    window.addEventListener('agro:languagechange', function () {
+      renderPlayersEventLabel();
+      if (lastPlayers) renderPlayers(lastPlayers);
+    });
   </script>
 </body>
 </html>

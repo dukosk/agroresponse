@@ -9,38 +9,43 @@
 <body>
   <main class="shell">
     <nav class="topnav">
-      <a href="/">Home</a>
-      <a data-event-link href="/queue.html">Public Queue</a>
-      <a data-event-link href="/register.html">Register</a>
-      <a data-event-link href="/players.html">Players</a>
-      <a data-event-link href="/leaderboard.html">Leaderboard</a>
+      <a href="/" data-i18n="home">Home</a>
+      <a data-event-link data-i18n="publicQueue" href="/queue.html">Public Queue</a>
+      <a data-event-link data-i18n="gameStation" href="/game-station.html">Game Station</a>
+      <a data-event-link data-i18n="register" href="/register.html">Register</a>
+      <a data-event-link data-i18n="players" href="/players.html">Players</a>
+      <a data-event-link data-i18n="leaderboard" href="/leaderboard.html">Leaderboard</a>
     </nav>
 
     <section class="panel">
-      <div class="section-head">
+      <div class="section-head operator-head">
         <div>
           <p class="eyebrow" id="eventLabel">Event</p>
-          <h1>Operator Control</h1>
-        </div>
-        <div class="inline-actions">
-          <button class="button primary" id="callNext" type="button">Call Next Player</button>
-          <button class="button" id="finishCurrent" type="button">Mark Current Finished</button>
-          <button class="button muted" id="resetWaiting" type="button">Reset Waiting Queue</button>
+          <h1 data-i18n="operatorControl">Operator Control</h1>
         </div>
       </div>
 
       <p class="message" id="operatorMessage"></p>
 
-      <div class="queue-grid operator-grid">
-        <article class="status-card current" id="currentCard"></article>
-        <article class="status-card" id="nextCard"></article>
+      <div class="operator-control-center">
+        <div class="operator-actions">
+          <button class="button primary" id="callNext" type="button" data-i18n="callNextPlayer">Call Next Player</button>
+          <button class="button" id="finishCurrent" type="button" data-i18n="markCurrentFinished">Mark Current Finished</button>
+          <button class="button" id="skipCurrent" type="button" data-i18n="skipCurrentPlayer">Skip Current Player</button>
+          <button class="button muted" id="resetWaiting" type="button" data-i18n="resetQueue">Reset Queue</button>
+        </div>
+
+        <div class="queue-grid operator-grid">
+          <article class="status-card current" id="currentCard"></article>
+          <article class="status-card" id="nextCard"></article>
+        </div>
       </div>
 
-      <h2>Waiting Pilots</h2>
+      <h2 data-i18n="waitingPilots">Waiting Pilots</h2>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Queue</th><th>Name</th><th>Mission</th><th>Status</th><th>Action</th></tr>
+            <tr><th data-i18n="queue">Queue</th><th data-i18n="name">Name</th><th data-i18n="mission">Mission</th><th data-i18n="status">Status</th><th data-i18n="action">Action</th></tr>
           </thead>
           <tbody id="waitingRows"></tbody>
         </table>
@@ -49,34 +54,42 @@
   </main>
 
   <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
   <script>
     const eventSlug = AgroApi.eventSlug();
     const currentCard = document.getElementById('currentCard');
     const nextCard = document.getElementById('nextCard');
     const waitingRows = document.getElementById('waitingRows');
     const message = document.getElementById('operatorMessage');
+    let currentPlayerId = null;
+    let lastQueueData = null;
 
     AgroApi.setEventLinks();
-    document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+    function renderOperatorEventLabel() {
+      document.getElementById('eventLabel').textContent = AgroI18n.t('eventLabel', { event: eventSlug });
+    }
+    renderOperatorEventLabel();
 
     function card(label, player, current) {
-      if (!player) return '<span>' + label + '</span><strong>None</strong><small>No player selected.</small>';
+      if (!player) return '<span>' + label + '</span><strong>' + AgroI18n.t('none') + '</strong><small>' + AgroI18n.t('noPlayerSelected') + '</small>';
       return '<span>' + label + '</span><strong>#' + player.queue_number + ' ' + AgroApi.escapeHtml(player.name) +
-        '</strong><small>' + AgroApi.title(player.selected_map) + ' Mission</small>' +
-        (current ? '<div class="actions"><a class="button primary" href="/game.html?id=' + player.id + '">Open Game</a><button class="button muted" data-skip="' + player.id + '">Skip</button></div>' : '');
+        '</strong><small>' + AgroApi.title(player.selected_map) + ' ' + AgroI18n.t('mission') + '</small>' +
+        (current ? '<div class="actions"><a class="button primary" href="/game.html?id=' + player.id + '">' + AgroI18n.t('openGame') + '</a><button class="button muted" data-skip="' + player.id + '">' + AgroI18n.t('skip') + '</button></div>' : '');
     }
 
     function render(data) {
-      currentCard.innerHTML = card('Current Player', data.queue.current, true);
-      nextCard.innerHTML = card('Next Player', data.queue.next, false);
+      lastQueueData = data;
+      currentPlayerId = data.queue.current ? data.queue.current.id : null;
+      currentCard.innerHTML = card(AgroI18n.t('currentlyPlaying'), data.queue.current, true);
+      nextCard.innerHTML = card(AgroI18n.t('nextPlayer'), data.queue.next, false);
       if (!data.queue.waiting.length) {
-        waitingRows.innerHTML = '<tr><td colspan="5">No waiting players.</td></tr>';
+        waitingRows.innerHTML = '<tr><td colspan="5">' + AgroI18n.t('noWaitingPlayers') + '</td></tr>';
         return;
       }
       waitingRows.innerHTML = data.queue.waiting.map(function (player) {
         return '<tr><td>#' + player.queue_number + '</td><td>' + AgroApi.escapeHtml(player.name) +
-          '</td><td>' + AgroApi.title(player.selected_map) + '</td><td>' + player.status +
-          '</td><td><button class="button small" data-skip="' + player.id + '">Skip</button></td></tr>';
+          '</td><td>' + AgroApi.title(player.selected_map) + '</td><td>' + AgroI18n.status(player.status) +
+          '</td><td><button class="button small" data-skip="' + player.id + '">' + AgroI18n.t('skip') + '</button></td></tr>';
       }).join('');
     }
 
@@ -85,7 +98,7 @@
         .then(render)
         .catch(function (error) {
           AgroApi.logError('Operator queue API failed', error);
-          message.textContent = 'Queue could not be loaded.';
+          message.textContent = AgroI18n.t('queueLoadFailed');
         });
     }
 
@@ -95,7 +108,7 @@
         .then(function () { refresh(); })
         .catch(function (error) {
           AgroApi.logError('Operator action failed', error);
-          message.textContent = error.message || 'Action failed.';
+          message.textContent = AgroI18n.apiError(error, 'actionFailed');
           refresh();
         });
     }
@@ -105,6 +118,13 @@
     });
     document.getElementById('finishCurrent').addEventListener('click', function () {
       action('/api/queue/finish-current', { event_slug: eventSlug });
+    });
+    document.getElementById('skipCurrent').addEventListener('click', function () {
+      if (!currentPlayerId) {
+        message.textContent = AgroI18n.t('noCurrentPlayerToSkip');
+        return;
+      }
+      action('/api/queue/skip-player', { event_slug: eventSlug, id: currentPlayerId });
     });
     document.getElementById('resetWaiting').addEventListener('click', function () {
       action('/api/queue/reset-waiting', { event_slug: eventSlug });
@@ -117,6 +137,10 @@
 
     refresh();
     window.setInterval(refresh, 3000);
+    window.addEventListener('agro:languagechange', function () {
+      renderOperatorEventLabel();
+      if (lastQueueData) render(lastQueueData);
+    });
   </script>
 </body>
 </html>

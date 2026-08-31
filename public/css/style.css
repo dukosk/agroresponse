@@ -85,6 +85,39 @@ a {
     text-decoration: none;
 }
 
+.language-switcher {
+    position: fixed;
+    z-index: 20;
+    right: 16px;
+    bottom: 16px;
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(6, 18, 11, 0.88);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(12px);
+}
+
+.language-switcher button {
+    min-width: 44px;
+    min-height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--ink);
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.language-switcher button.active {
+    border-color: rgba(123, 217, 90, 0.8);
+    background: var(--primary);
+    color: #06200e;
+}
+
 .hero,
 .panel {
     border: 1px solid var(--line);
@@ -178,7 +211,8 @@ h3 {
     white-space: nowrap;
 }
 
-.qr-code {
+.qr-code,
+.qr-code-img {
     width: 116px;
     aspect-ratio: 1 / 1;
     flex: 0 0 auto;
@@ -191,7 +225,14 @@ h3 {
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
 }
 
-.qr-code.small {
+.qr-code-img {
+    display: block;
+    object-fit: contain;
+    background: #f4fff7;
+}
+
+.qr-code.small,
+.qr-code-img.small {
     width: 74px;
     border-width: 6px;
 }
@@ -375,6 +416,11 @@ select {
     display: none;
 }
 
+.game-layout.hidden,
+.station-waiting.hidden {
+    display: none;
+}
+
 .notice.error {
     border: 1px solid rgba(255, 59, 48, 0.45);
     background: rgba(255, 59, 48, 0.14);
@@ -385,12 +431,26 @@ select {
     background: rgba(123, 217, 90, 0.13);
 }
 
-.registration-result,
-.final-result {
+.registration-result {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     margin-bottom: 16px;
+}
+
+.final-result {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(12px, 1.5vw, 18px);
+    margin-bottom: 16px;
+}
+
+.final-result > div {
+    min-width: 0;
+    padding: clamp(16px, 1.8vw, 24px);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .registration-result span,
@@ -403,8 +463,23 @@ select {
 .registration-result strong,
 .final-result strong {
     display: block;
-    grid-row: 2;
+    line-height: 1;
+}
+
+.registration-result strong {
     font-size: clamp(2rem, 4vw, 4.5rem);
+}
+
+.final-result strong {
+    margin-top: 8px;
+    overflow: hidden;
+    font-size: clamp(1.8rem, 3vw, 3.25rem);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.registration-result strong {
+    grid-row: 2;
 }
 
 .section-head {
@@ -647,6 +722,23 @@ tr:last-child td {
     margin-bottom: 26px;
 }
 
+.operator-control-center {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+
+.operator-actions {
+    display: grid;
+    gap: 12px;
+}
+
+.operator-actions .button {
+    min-height: 58px;
+    justify-content: flex-start;
+}
+
 .leaderboard-preview {
     border-top: 1px solid var(--line);
     min-height: 0;
@@ -662,6 +754,55 @@ tr:last-child td {
 
 .game-shell {
     width: min(1680px, calc(100% - 32px));
+}
+
+.station-shell {
+    min-height: 100vh;
+    display: grid;
+    align-content: start;
+}
+
+.station-waiting {
+    min-height: calc(100vh - 118px);
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+    gap: 24px;
+    align-items: stretch;
+}
+
+.station-hero,
+.station-scoreboard {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: linear-gradient(145deg, rgba(11, 39, 21, 0.94), rgba(8, 24, 15, 0.88));
+    box-shadow: var(--shadow);
+}
+
+.station-hero {
+    padding: clamp(28px, 5vw, 72px);
+    display: grid;
+    align-content: center;
+}
+
+.station-scoreboard {
+    min-height: 0;
+    padding: clamp(18px, 2vw, 28px);
+    display: grid;
+    grid-template-rows: minmax(0, 0.72fr) minmax(0, 1fr);
+    gap: 18px;
+}
+
+.compact-panel {
+    min-height: 0;
+    padding: clamp(18px, 2vw, 28px);
+    overflow: auto;
+    box-shadow: none;
+}
+
+.start-mission-button {
+    width: 100%;
+    min-height: clamp(64px, 7vw, 108px);
+    font-size: clamp(1.2rem, 2.1vw, 2.2rem);
 }
 
 .game-layout {
@@ -818,6 +959,7 @@ tr:last-child td {
     .map-choice-grid,
     .leaderboards,
     .queue-exhibit,
+    .station-waiting,
     .game-layout,
     .form-grid {
         grid-template-columns: 1fr;
@@ -833,5 +975,13 @@ tr:last-child td {
 
     .player-name {
         font-size: clamp(3.4rem, 18vw, 7rem);
+    }
+
+    .final-result {
+        grid-template-columns: 1fr;
+    }
+
+    .station-waiting {
+        min-height: auto;
     }
 }

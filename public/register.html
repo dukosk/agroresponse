@@ -9,41 +9,42 @@
 <body>
   <main class="shell">
     <nav class="topnav">
-      <a href="/">Home</a>
-      <a data-event-link href="/queue.html">Queue</a>
-      <a data-event-link href="/leaderboard.html">Leaderboard</a>
-      <a data-event-link href="/players.html">Players</a>
+      <a href="/" data-i18n="home">Home</a>
+      <a data-event-link data-i18n="queue" href="/queue.html">Queue</a>
+      <a data-event-link data-i18n="leaderboard" href="/leaderboard.html">Leaderboard</a>
+      <a data-event-link data-i18n="players" href="/players.html">Players</a>
     </nav>
 
     <section class="panel">
       <p class="eyebrow" id="eventLabel">Event</p>
-      <h1>Register Pilot</h1>
+      <h1 data-i18n="registerPilot">Register Pilot</h1>
       <div class="notice hidden" id="notice"></div>
 
       <form class="form" id="registerForm">
         <div class="form-grid">
           <label>
-            <span>Name</span>
+            <span data-i18n="name">Name</span>
             <input name="name" required maxlength="120" autocomplete="name">
           </label>
 
           <label>
-            <span>Email</span>
+            <span data-i18n="email">Email</span>
             <input name="email" type="email" required maxlength="180" autocomplete="email">
           </label>
         </div>
 
         <div>
-          <p class="eyebrow">Select Mission Map</p>
+          <p class="eyebrow" data-i18n="selectMissionMap">Select Mission Map</p>
           <div class="map-choice-grid" id="mapChoices"></div>
         </div>
 
-        <button class="button primary" type="submit">Join Queue</button>
+        <button class="button primary" type="submit" data-i18n="joinQueue">Join Queue</button>
       </form>
     </section>
   </main>
 
   <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
   <script>
     const eventSlug = AgroApi.eventSlug();
     const params = new URLSearchParams(window.location.search);
@@ -51,14 +52,19 @@
     const notice = document.getElementById('notice');
     const mapChoices = document.getElementById('mapChoices');
     let selectedMap = params.get('map') || 'orchard';
+    let lastRegistrationResult = null;
+    let lastRegistrationError = null;
 
     AgroApi.setEventLinks();
-    document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+    function renderEventLabel() {
+      document.getElementById('eventLabel').textContent = AgroI18n.t('eventLabel', { event: eventSlug });
+    }
+    renderEventLabel();
 
-    const mapDescriptions = {
-      orchard: 'Tree-row precision mission for canopy disease detection.',
-      forest: 'Dense canopy survey for early stress and outbreak signals.',
-      field: 'Crop-row scouting for fast hotspot treatment decisions.'
+    const mapDescriptionKeys = {
+      orchard: 'orchardChoiceDesc',
+      forest: 'forestChoiceDesc',
+      field: 'fieldChoiceDesc'
     };
 
     function renderMapChoices(maps) {
@@ -67,10 +73,25 @@
         return '<label class="map-choice' + selected + '" style="--map-image: url(/img/' + map + '-aerial.png)">' +
           '<input type="radio" name="selected_map" value="' + AgroApi.escapeHtml(map) + '"' +
           (map === selectedMap ? ' checked' : '') + '>' +
-          '<span class="selected-badge">Selected</span>' +
-          '<span class="map-choice-content"><span class="eyebrow">Mission Map</span><h3>' + AgroApi.title(map) +
-          '</h3><p>' + mapDescriptions[map] + '</p></span></label>';
+          '<span class="selected-badge">' + AgroI18n.t('selected') + '</span>' +
+          '<span class="map-choice-content"><span class="eyebrow">' + AgroI18n.t('missionMap') + '</span><h3>' + AgroApi.title(map) +
+          '</h3><p>' + AgroI18n.t(mapDescriptionKeys[map]) + '</p></span></label>';
       }).join('');
+    }
+
+    function renderRegistrationSuccess(result) {
+      const player = result.registration;
+      notice.className = 'notice success';
+      notice.innerHTML = '<div class="registration-result"><span>' + AgroI18n.t('queueNumber') + '</span><strong>#' +
+        player.queue_number + '</strong><span>' + AgroI18n.t('selectedMission') + '</span><strong>' +
+        AgroApi.title(player.selected_map) + '</strong><span>' + AgroI18n.t('playersBeforeYou') + '</span><strong>' +
+        (result.playersBefore == null ? Math.max(0, (result.waitingPosition || 1) - 1) : result.playersBefore) + '</strong></div>' +
+        '<p>' + AgroI18n.t('registeredForMission', {
+          name: AgroApi.escapeHtml(player.name),
+          map: AgroApi.title(player.selected_map)
+        }) + '</p>' +
+        '<div class="actions"><a class="button primary" href="/queue.html?event=' +
+        encodeURIComponent(eventSlug) + '">' + AgroI18n.t('viewQueue') + '</a><a class="button" href="/">' + AgroI18n.t('home') + '</a></div>';
     }
 
     AgroApi.config().then(function (config) {
@@ -95,22 +116,26 @@
       AgroApi.post('/api/register', data)
         .then(function (result) {
           if (!result.ok) throw new Error(result.error);
-          const player = result.registration;
+          lastRegistrationResult = result;
+          lastRegistrationError = null;
           form.reset();
-          notice.className = 'notice success';
-          notice.innerHTML = '<div class="registration-result"><span>Queue Number</span><strong>#' +
-            player.queue_number + '</strong><span>Selected Mission</span><strong>' +
-            AgroApi.title(player.selected_map) + '</strong><span>Approx. Waiting Position</span><strong>' +
-            (result.waitingPosition || player.queue_number) + '</strong></div>' +
-            '<p>' + AgroApi.escapeHtml(player.name) + ' is registered for the ' +
-            AgroApi.escapeHtml(player.selected_map) + ' mission.</p>' +
-            '<div class="actions"><a class="button primary" href="/queue.html?event=' +
-            encodeURIComponent(eventSlug) + '">View Queue</a></div>';
+          renderRegistrationSuccess(result);
         })
         .catch(function (error) {
+          lastRegistrationResult = null;
+          lastRegistrationError = error;
           notice.className = 'notice error';
-          notice.textContent = error.message || 'Registration failed.';
+          notice.textContent = AgroI18n.apiError(error, 'registrationFailed');
         });
+    });
+
+    window.addEventListener('agro:languagechange', function () {
+      renderEventLabel();
+      if (lastRegistrationResult) renderRegistrationSuccess(lastRegistrationResult);
+      if (lastRegistrationError) notice.textContent = AgroI18n.apiError(lastRegistrationError, 'registrationFailed');
+      AgroApi.config().then(function (config) {
+        renderMapChoices(config.maps);
+      });
     });
   </script>
 </body>

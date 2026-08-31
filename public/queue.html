@@ -13,12 +13,12 @@
         <div class="queue-topbar">
           <div>
             <p class="eyebrow" id="eventLabel">Event</p>
-            <h1>Live Mission Queue</h1>
+            <h1 data-i18n="liveMissionQueue">Live Mission Queue</h1>
           </div>
           <nav class="topnav">
-            <a href="/">Home</a>
-            <a data-event-link href="/register.html">Register</a>
-            <a data-event-link href="/leaderboard.html">Leaderboard</a>
+            <a href="/" data-i18n="home">Home</a>
+            <a data-event-link data-i18n="register" href="/register.html">Register</a>
+            <a data-event-link data-i18n="leaderboard" href="/leaderboard.html">Leaderboard</a>
           </nav>
         </div>
 
@@ -34,19 +34,19 @@
         <div class="current-leader" id="currentLeader"></div>
 
         <div class="waiting-list">
-          <h2>Waiting Pilots</h2>
+          <h2 data-i18n="waitingPilots">Waiting Pilots</h2>
           <div id="waitingRows"></div>
         </div>
 
         <div class="leaderboard-preview">
-          <h2>Today Top Scores</h2>
+          <h2 data-i18n="todayTopScores">Today Top Scores</h2>
           <div id="leaderboardPreview"></div>
         </div>
 
         <div class="qr-compact">
-          <div class="qr-code small" aria-hidden="true"></div>
+          <img class="qr-code-img small" id="queueQr" data-i18n-alt="qrRegistration" alt="Registration QR code">
           <div>
-            <strong>Register</strong>
+            <strong data-i18n="register">Register</strong>
             <span id="queueRegisterUrl"></span>
           </div>
         </div>
@@ -55,6 +55,7 @@
   </main>
 
   <script src="/js/api.js"></script>
+  <script src="/js/i18n.js"></script>
   <script>
     const eventSlug = AgroApi.eventSlug();
     const currentCard = document.getElementById('currentCard');
@@ -63,62 +64,72 @@
     const leaderboardPreview = document.getElementById('leaderboardPreview');
     const currentLeader = document.getElementById('currentLeader');
     const message = document.getElementById('queueMessage');
+    let lastQueueData = null;
+    let lastLeaderData = null;
+    let lastTodayData = null;
 
     AgroApi.setEventLinks();
-    document.getElementById('eventLabel').textContent = 'Event: ' + eventSlug;
+    function renderQueueEventLabel() {
+      document.getElementById('eventLabel').textContent = AgroI18n.t('eventLabel', { event: eventSlug });
+    }
+    renderQueueEventLabel();
     document.getElementById('queueRegisterUrl').textContent = window.location.origin + '/register.html?event=' + encodeURIComponent(eventSlug);
+    document.getElementById('queueQr').src = '/api/register-qr.svg?event=' + encodeURIComponent(eventSlug);
 
     function playerCard(label, player, isCurrent) {
       if (!player) {
         if (isCurrent) {
-          return '<div class="player-label">' + label + '</div><div class="player-name">Ready</div>' +
-            '<div class="player-meta">Call the next pilot</div>';
+          return '<div class="player-label">' + label + '</div><div class="player-name">' + AgroI18n.t('ready') + '</div>' +
+            '<div class="player-meta">' + AgroI18n.t('callNextPilot') + '</div>';
         }
-        return '<span class="player-label">' + label + '</span><strong>No one waiting</strong><div class="player-meta">New pilots appear after registration</div>';
+        return '<span class="player-label">' + label + '</span><strong>' + AgroI18n.t('noOneWaiting') + '</strong><div class="player-meta">' + AgroI18n.t('newPilotsAfterRegistration') + '</div>';
       }
 
       if (isCurrent) {
         return '<div class="player-label">' + label + '</div><div class="player-name">' + AgroApi.escapeHtml(player.name) +
-          '</div><div class="player-meta">Queue #' + player.queue_number + ' · ' + AgroApi.title(player.selected_map) +
-          ' Mission</div>';
+          '</div><div class="player-meta">' + AgroI18n.t('queue') + ' #' + player.queue_number + ' · ' + AgroApi.title(player.selected_map) +
+          ' ' + AgroI18n.t('mission') + '</div>';
       }
       return '<span class="player-label">' + label + '</span><strong>#' + player.queue_number + ' ' + AgroApi.escapeHtml(player.name) +
-        '</strong><div class="player-meta">' + AgroApi.title(player.selected_map) + ' Mission</div>';
+        '</strong><div class="player-meta">' + AgroApi.title(player.selected_map) + ' ' + AgroI18n.t('mission') + '</div>';
     }
 
     function renderQueue(data) {
-      currentCard.innerHTML = playerCard('Currently Playing', data.queue.current, true);
-      nextCard.innerHTML = playerCard('Next Player', data.queue.next, false);
+      lastQueueData = data;
+      currentCard.innerHTML = playerCard(AgroI18n.t('currentlyPlaying'), data.queue.current, true);
+      nextCard.innerHTML = playerCard(AgroI18n.t('nextPlayer'), data.queue.next, false);
 
       if (!data.queue.waiting.length) {
-        waitingRows.innerHTML = '<div class="empty-state">No waiting players.</div>';
+        waitingRows.innerHTML = '<div class="empty-state">' + AgroI18n.t('noWaitingPlayers') + '</div>';
         return;
       }
 
       waitingRows.innerHTML = data.queue.waiting.map(function (player) {
         return '<div class="waiting-row"><span class="queue-number">#' + player.queue_number + '</span><strong>' +
           AgroApi.escapeHtml(player.name) + '</strong><span class="message">' + AgroApi.title(player.selected_map) +
-          ' Mission</span></div>';
+          ' ' + AgroI18n.t('mission') + '</span></div>';
       }).join('');
     }
 
     function renderLeader(data) {
+      lastLeaderData = data;
       const eventTop = (data.event || []).slice(0, 1);
 
       if (!eventTop.length) {
-        currentLeader.innerHTML = '<h2>Current Leader</h2><div class="empty-state">No leader yet.</div>';
+        currentLeader.innerHTML = '<h2>' + AgroI18n.t('currentLeader') + '</h2><div class="empty-state">' + AgroI18n.t('noLeaderYet') + '</div>';
       } else {
         const leader = eventTop[0];
-        currentLeader.innerHTML = '<h2>Current Leader</h2><div class="leader-card"><strong>' +
+        currentLeader.innerHTML = '<h2>' + AgroI18n.t('currentLeader') + '</h2><div class="leader-card"><strong>' +
           AgroApi.escapeHtml(leader.name) + '</strong><span class="rank-score">' + leader.score +
-          '</span><span class="message">' + AgroApi.title(leader.selected_map) + ' Mission</span></div>';
+          '</span><span class="message">' + AgroApi.title(leader.selected_map) + ' ' + AgroI18n.t('mission') + '</span></div>';
       }
     }
 
     function renderTodayScores(data) {
+      lastTodayData = data;
       const top = (data.today || []).slice(0, 5);
       if (!top.length) {
-        leaderboardPreview.innerHTML = '<div class="empty-state">No scores today yet.</div>';
+        leaderboardPreview.innerHTML = '<div class="empty-state">' + AgroI18n.t('noScoresToday') + '</div>';
         return;
       }
 
@@ -133,24 +144,30 @@
         .then(renderQueue)
         .catch(function (error) {
           AgroApi.logError('Queue API failed', error);
-          message.textContent = 'Queue could not be loaded.';
+          message.textContent = AgroI18n.t('queueLoadFailed');
         });
       AgroApi.get('/api/leaderboard?event=' + encodeURIComponent(eventSlug))
         .then(renderLeader)
         .catch(function (error) {
           AgroApi.logError('Queue leader API failed', error);
-          currentLeader.innerHTML = '<h2>Current Leader</h2><div class="empty-state">Leader could not be loaded.</div>';
+          currentLeader.innerHTML = '<h2>' + AgroI18n.t('currentLeader') + '</h2><div class="empty-state">' + AgroI18n.t('leaderLoadFailed') + '</div>';
         });
       AgroApi.get('/api/leaderboard/today?event=' + encodeURIComponent(eventSlug))
         .then(renderTodayScores)
         .catch(function (error) {
           AgroApi.logError('Queue today leaderboard API failed', error);
-          leaderboardPreview.innerHTML = '<div class="empty-state">Today scores could not be loaded.</div>';
+          leaderboardPreview.innerHTML = '<div class="empty-state">' + AgroI18n.t('todayScoresLoadFailed') + '</div>';
         });
     }
 
     refreshQueue();
     window.setInterval(refreshQueue, 3000);
+    window.addEventListener('agro:languagechange', function () {
+      renderQueueEventLabel();
+      if (lastQueueData) renderQueue(lastQueueData);
+      if (lastLeaderData) renderLeader(lastLeaderData);
+      if (lastTodayData) renderTodayScores(lastTodayData);
+    });
   </script>
 </body>
 </html>
