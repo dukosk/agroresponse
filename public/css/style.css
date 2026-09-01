@@ -797,7 +797,40 @@ tr:last-child td {
 }
 
 .single-station-nav {
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 14px;
+}
+
+.single-station-nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.droniox-logo {
+    width: auto;
+    height: auto;
+    max-width: min(430px, 48vw);
+    max-height: 70px;
+    display: block;
+    flex: 0 1 auto;
+    border: 0;
+    background: transparent;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.28));
+    object-fit: contain;
+    object-position: left center;
+}
+
+.droniox-logo.home-logo {
+    margin-bottom: 26px;
+}
+
+.droniox-logo.compact {
+    width: auto;
+    height: auto;
+    max-width: 178px;
+    max-height: 42px;
 }
 
 .single-playing .single-station-nav {
@@ -900,6 +933,21 @@ tr:last-child td {
 
 .single-game-layout .game-info h1 {
     overflow-wrap: anywhere;
+}
+
+.single-game-brand {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin-bottom: 24px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .single-game-layout .hint {
@@ -1241,6 +1289,15 @@ tr:last-child td {
 }
 
 @media (max-width: 620px) {
+    .single-station-nav,
+    .single-station-nav-links {
+        align-items: flex-start;
+    }
+
+    .single-station-nav-links {
+        width: 100%;
+    }
+
     .single-final-result,
     .single-result-actions {
         grid-template-columns: 1fr;

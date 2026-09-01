@@ -1,8 +1,8 @@
 const EVENT_NAME = 'Agrokomplex Nitra';
 const DEFAULT_EVENT_SLUG = 'agrokomplex-nitra';
 const EVENT_SLUG = DEFAULT_EVENT_SLUG;
-const MAPS = ['orchard', 'forest', 'field'];
-const TIMER_SECONDS = 45;
+const MAPS = ['field', 'orchard', 'forest'];
+const TIMER_SECONDS = 60;
 const GAME_DURATION_SECONDS = TIMER_SECONDS;
 const SPAWN_INTERVAL_MS = 2200;
 const MAX_ACTIVE_HOTSPOTS = 3;

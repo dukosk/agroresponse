@@ -8,18 +8,21 @@
 </head>
 <body data-game-mode="single">
   <main class="shell single-station-shell">
-    <nav class="topnav single-station-nav">
-      <a href="/" data-i18n="home">Home</a>
-      <a href="/leaderboard.html?event=agrokomplex-nitra" data-i18n="leaderboard">Leaderboard</a>
-      <a href="/players.html?event=agrokomplex-nitra" data-i18n="players">Players</a>
+    <nav class="topnav single-station-nav" aria-label="Single Station navigation">
+      <img class="droniox-logo" src="/img/droniox-logo.png" alt="DronioX logo">
+      <div class="single-station-nav-links">
+        <a href="/" data-i18n="home">Home</a>
+        <a href="/leaderboard.html?event=agrokomplex-nitra" data-i18n="leaderboard">Leaderboard</a>
+        <a href="/players.html?event=agrokomplex-nitra" data-i18n="players">Players</a>
+      </div>
     </nav>
 
     <section class="panel single-registration" id="singleRegistration">
       <header class="single-registration-head">
         <div>
-          <p class="eyebrow" data-i18n="mainExhibitionMode">Main Exhibition Mode</p>
-          <h1 data-i18n="singleStation">Single Station</h1>
-          <p class="lead" data-i18n="singleStationLead">Register the next pilot, choose a mission, and start immediately on this screen.</p>
+          <p class="eyebrow"><span data-i18n="mainExhibitionMode">Main Exhibition Mode</span> · <span data-i18n="singleStation">Single Station</span></p>
+          <h1 data-i18n="appTitle">Agro Drone Response</h1>
+          <p class="lead" data-i18n="singleStationBrandSubtitle">Interactive drone mission for orchard, forest and field monitoring</p>
         </div>
         <div class="event-chip">
           <span data-i18n="event">Event</span>
@@ -57,12 +60,13 @@
 
     <section class="game-layout single-game-layout hidden" id="gameLayout">
       <div class="game-info">
+        <div class="single-game-brand"><img class="droniox-logo compact" src="/img/droniox-logo.png" alt="DronioX logo"><span data-i18n="appTitle">Agro Drone Response</span></div>
         <p class="eyebrow" id="playerMeta"></p>
         <h1 id="playerName">Agro Drone Response</h1>
         <div class="live-game-stats">
           <div class="stats">
             <span><span data-i18n="score">Score</span> <strong id="score">0</strong></span>
-            <span><span data-i18n="time">Time</span> <strong id="time">45</strong>s</span>
+            <span><span data-i18n="time">Time</span> <strong id="time">60</strong>s</span>
           </div>
           <p class="hint" data-i18n="gameStationHint">Move with WASD or arrows. Press SPACE on a red hotspot.</p>
         </div>

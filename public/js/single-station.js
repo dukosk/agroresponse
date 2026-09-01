@@ -1,6 +1,6 @@
 (function () {
   const EVENT_SLUG = 'agrokomplex-nitra';
-  const DEFAULT_MAPS = ['orchard', 'forest', 'field'];
+  const DEFAULT_MAPS = ['field', 'orchard', 'forest'];
   const form = document.getElementById('singleStationForm');
   if (!form) return;
 
@@ -14,7 +14,7 @@
   const eventName = document.getElementById('singleEventName');
   let maps = DEFAULT_MAPS.slice();
   const requestedMap = new URLSearchParams(window.location.search).get('map');
-  let selectedMap = DEFAULT_MAPS.includes(requestedMap) ? requestedMap : 'orchard';
+  let selectedMap = DEFAULT_MAPS.includes(requestedMap) ? requestedMap : 'field';
   let submitting = false;
   let lastError = null;
 

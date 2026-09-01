@@ -26,7 +26,7 @@
 
   let gridSize = 16;
   let cellSize = canvas.width / gridSize;
-  let timerSeconds = 45;
+  let timerSeconds = 60;
   let spawnIntervalMs = 2200;
   let maxActiveTargets = 3;
   let registrationId = null;
