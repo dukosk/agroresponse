@@ -1,0 +1,33 @@
+{
+  "registrations": [
+    {
+      "id": 1,
+      "event_slug": "agrokomplex-nitra",
+      "queue_number": 1,
+      "name": "dusan korcak",
+      "email": "dusan.korcak@gmail.com",
+      "selected_map": "field",
+      "status": "finished",
+      "score": 3300,
+      "created_at": "2026-09-02T08:24:41.142Z",
+      "started_at": "2026-09-02T08:24:41.142Z",
+      "finished_at": "2026-09-02T08:25:41.191Z"
+    }
+  ],
+  "scores": [
+    {
+      "id": 1,
+      "registration_id": 1,
+      "event_slug": "agrokomplex-nitra",
+      "score": 3300,
+      "created_at": "2026-09-02T08:25:41.191Z"
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "slug": "agrokomplex-nitra",
+      "created_at": "2026-09-02T08:24:41.142Z"
+    }
+  ]
+}

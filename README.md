@@ -6,7 +6,7 @@ Initial MVP for a lightweight browser-based event queue, drone game, and leaderb
 
 - Node.js
 - Express
-- SQLite
+- JSON file storage
 - Plain HTML/CSS
 - Plain JavaScript canvas
 
@@ -26,7 +26,9 @@ npm start
 
 Open http://localhost:8000.
 
-The SQLite database lives at `database/database.sqlite`. The server creates or migrates the table automatically on startup.
+Active exhibition data lives at `database/data.json`. The server creates the folder and JSON file automatically when missing. The previous `database/database.sqlite` file is retained as legacy data but is no longer read by the app.
+
+Storage uses only built-in Node.js file-system APIs. Installation does not require Python, `node-gyp`, Visual Studio Build Tools, or a native database compiler.
 
 ## Default event
 
@@ -48,23 +50,28 @@ You can override it with `?event=your-event-slug` on registration, queue, and le
 - Canvas game with WASD/arrow drone movement
 - Random red targets on a grid
 - SPACE action
-- 45 second default game timer
+- 60 second default game timer
 - Score rules: +100 correct hit, -50 miss
-- SQLite score saving
+- JSON score saving
 - Event and global leaderboards
 
 ## Pages
 
 - `/` home
+- `/single-station.html` one-laptop exhibition mode
 - `/register.html` registration
 - `/queue.html` queue board
+- `/operator.html` queue operator controls
+- `/game-station.html` dedicated queue game station
 - `/game.html?id=1` game for a registration
 - `/leaderboard.html` event and global leaderboards
+- `/players.html` player records and CSV export
 
 ## API
 
 - `GET /api/config`
 - `POST /api/register`
+- `POST /api/single-station/register`
 - `GET /api/queue?event=agrokomplex-nitra`
 - `POST /api/queue/call-next`
 - `POST /api/queue/finish-current`
@@ -72,3 +79,7 @@ You can override it with `?event=your-event-slug` on registration, queue, and le
 - `GET /api/player/:id`
 - `POST /api/score`
 - `GET /api/leaderboard?event=agrokomplex-nitra`
+- `GET /api/leaderboard/today?event=agrokomplex-nitra`
+- `GET /api/leaderboard/today/export?event=agrokomplex-nitra`
+- `GET /api/players?event=agrokomplex-nitra`
+- `GET /api/players/export?event=agrokomplex-nitra`
